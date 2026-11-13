@@ -117,6 +117,11 @@ class FullSheet(ui.View):
             'accent': chosen.get('accent') or palette.accent,
         }
 
+    def shows_header(self):
+        """False when the window draws its own header (set_full_look(header=False))."""
+        chosen = getattr(self.window, 'full_look', None) or {}
+        return chosen.get('header', True) is not False
+
     def restyle(self):
         """Paint the sheet, its header and buttons (set_full_look calls this)."""
         colours = self.colours()
@@ -126,6 +131,8 @@ class FullSheet(ui.View):
             button.background_color = colours['button']
             button.tint_color = colours['accent']
         self.heading.text_color = colours['text']
+        self.header.hidden = not self.shows_header()
+        self.layout()
 
     def refresh(self):
         """Title and emoji from the window (set_title calls this)."""
@@ -156,7 +163,7 @@ class FullSheet(ui.View):
     def layout(self):
         width = self.width
         top, bottom = self.safe_insets()
-        header_height = look.HEADER_HEIGHT
+        header_height = look.HEADER_HEIGHT if self.shows_header() else 0
         size, gap = look.HEADER_BUTTON_SIZE, look.HEADER_BUTTON_GAP
 
         self.header.frame = (0, top, width, header_height)

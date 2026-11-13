@@ -617,13 +617,15 @@ class Window(Homes, Moves, Gestures):
             self.panel.refresh()
 
     @_app.on_main
-    def set_full_look(self, background=None, button=None, text=None, accent=None):
+    def set_full_look(self, background=None, button=None, text=None, accent=None, header=True):
         """This window's colours while full screen: the sheet and its header
         (background), the header buttons (button, with accent icons) and the
         title (text). None keeps the palette's colour. A game whose page has
-        its own background passes it here so the screen is one surface."""
+        its own background passes it here so the screen is one surface.
+        header=False hides the header altogether: the page draws its own
+        and must offer a way back (window.leave_full, window.close)."""
         self.full_look = {'background': background, 'button': button,
-                          'text': text, 'accent': accent}
+                          'text': text, 'accent': accent, 'header': header}
         if getattr(self, 'full_sheet', None) is not None:
             self.full_sheet.restyle()
 
