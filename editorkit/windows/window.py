@@ -617,6 +617,17 @@ class Window(Homes, Moves, Gestures):
             self.panel.refresh()
 
     @_app.on_main
+    def set_full_look(self, background=None, button=None, text=None, accent=None):
+        """This window's colours while full screen: the sheet and its header
+        (background), the header buttons (button, with accent icons) and the
+        title (text). None keeps the palette's colour. A game whose page has
+        its own background passes it here so the screen is one surface."""
+        self.full_look = {'background': background, 'button': button,
+                          'text': text, 'accent': accent}
+        if getattr(self, 'full_sheet', None) is not None:
+            self.full_sheet.restyle()
+
+    @_app.on_main
     def set_pin_text(self, text):
         """Words beside the emoji in the pin (None: just the emoji)."""
         self.pin_words = text

@@ -46,9 +46,7 @@ class FullSheet(ui.View):
         self.overlay = None              # the window's sheet over the page, or None
         self.leaving = False             # set when the window closes the sheet itself
         self.palette = window.palette
-        self.background_color = self.palette.panel
-
-        self.header = ui.View(background_color=self.palette.panel)
+        self.header = ui.View()
         self.add_subview(self.header)
         self.buttons = []
         self.add_header_button(look.FULL_EXIT_ICON, self.back_tapped)
@@ -65,6 +63,7 @@ class FullSheet(ui.View):
         if accessory is not None:
             self.add_subview(accessory[0])
         self.set_overlay(overlay)
+        self.restyle()
         self.refresh()
         self.update_interval = CLOCK_SECONDS
 
@@ -105,6 +104,28 @@ class FullSheet(ui.View):
         if self.overlay is not None:
             views.append(self.overlay)
         return views
+
+    def colours(self):
+        """The sheet's colours: the window's full look (Window.set_full_look)
+        where it names one, else the palette's."""
+        chosen = getattr(self.window, 'full_look', None) or {}
+        palette = self.palette
+        return {
+            'background': chosen.get('background') or palette.panel,
+            'button': chosen.get('button') or palette.background,
+            'text': chosen.get('text') or palette.text,
+            'accent': chosen.get('accent') or palette.accent,
+        }
+
+    def restyle(self):
+        """Paint the sheet, its header and buttons (set_full_look calls this)."""
+        colours = self.colours()
+        self.background_color = colours['background']
+        self.header.background_color = colours['background']
+        for button in self.buttons:
+            button.background_color = colours['button']
+            button.tint_color = colours['accent']
+        self.heading.text_color = colours['text']
 
     def refresh(self):
         """Title and emoji from the window (set_title calls this)."""

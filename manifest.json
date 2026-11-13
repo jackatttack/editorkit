@@ -2,7 +2,7 @@
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
  "version": "0.2.1",
- "staged": "2026-11-13 15:47",
+ "staged": "2026-11-13 17:03",
  "files": [
   [
    "LICENSE",
@@ -306,7 +306,7 @@
   ],
   [
    "editorkit/windows/fullsheet.py",
-   7003
+   7912
   ],
   [
    "editorkit/windows/gestures.py",
@@ -370,7 +370,7 @@
   ],
   [
    "editorkit/windows/window.py",
-   34910
+   35542
   ],
   [
    "editorkit/wrench.py",
