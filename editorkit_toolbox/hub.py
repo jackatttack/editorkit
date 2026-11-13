@@ -42,7 +42,7 @@ from . import tools
 
 # --- Settings -------------------------------------------------------------
 
-TITLE = 'Deck'
+TITLE = 'Toolbox'
 EMOJI = '🏡'
 WINDOW_KEY = 'deck-hub'
 HELP_ICON = '?'
@@ -124,7 +124,10 @@ CARD_MIN_WIDTH = 130             # narrowest a tool card gets before the grid dr
 HELP_NOTE = 'Help: tap a tool to read about it. ? again to finish.'
 TIDY_ICON = '🪟'                 # header: lay the open windows out evenly
 RECENT_HEADING = 'Recent scripts'
-RECENT_ON_TOOLS = 6              # recent scripts under the tool cards
+RECENT_ON_TOOLS = 12             # recent scripts under the tool cards
+KEEP_FIND_OPEN = True            # opening a found script keeps the hub and its search on
+                                 #   screen (several can be opened); False: the hub folds
+CLEAR_ICON = '⌫'                 # header, while Find holds a term: back to the home view
 
 
 def tool_cards(specs):
@@ -344,7 +347,10 @@ class Hub:
 
         self.tray_bar = TrayBar(self.window, on_tap=self.tray_tapped, on_hold=self.tray_held)
         # Find: one web page of sections (see "Find: one search for everything").
-        self.results = web_tiles.Code(self.window, on_pick=self.picked, extra_css=FIND_CSS)
+        # fresh_on_grow: a page whose width follows the window draws clipped after
+        # a resize (the iPad showed the tool grid cut off at two thirds).
+        self.results = web_tiles.Code(self.window, on_pick=self.picked, extra_css=FIND_CSS,
+                                      fresh_on_grow=True)
         # Where Find looks: a folder chip (a sheet of folder tiles) and ⌂.
         self.scope = SCOPE_MEMORY.get('folder', DOCUMENTS)
         if not os.path.isdir(self.scope):
@@ -360,6 +366,7 @@ class Hub:
         self.opener = ek.Opener(self.window)
         self.folded = set()              # Find sections folded by a tap on their header
         self.term = ''
+        self.clear_shown = False         # ⌫ in the header (show_clear_button)
         self.scan_due = None             # when the file scan starts (after typing stops)
         self.find_names = self.find_code = False
         self.counts = {'names': 0, 'code': 0}
@@ -517,7 +524,19 @@ class Hub:
                 CARD_MIN_WIDTH))
         return ''.join(pieces), items
 
+    def show_clear_button(self, wanted):
+        """⌫ in the header while Find holds a term: one tap empties Find and
+        goes back to the home view."""
+        if wanted == self.clear_shown:
+            return
+        self.clear_shown = wanted
+        if wanted:
+            self.window.add_button(CLEAR_ICON, lambda *ignored: self.reset_find(), name='clear')
+        else:
+            self.window.remove_button('clear')
+
     def find_tick(self, *ignored):
+        self.show_clear_button(bool(self.term))
         if self.scan_due is not None and time.time() >= self.scan_due:
             self.scan_due = None
             name_limit = search.MAX_NAME_HITS if 'names' in self.expanded else FIND_NAME_FILES
@@ -605,8 +624,10 @@ class Hub:
         self.apply_folds()
 
     def picked(self, item):
-        """A tap on the Find page: a header folds its section; anything else
-        opens, after Find empties and the hub folds away."""
+        """A tap on the Find page: a header folds its section. A found script
+        opens and Find keeps its search, with the hub on screen while
+        KEEP_FIND_OPEN (⌫ empties it); a tool or window opens after Find
+        empties and the hub folds away."""
         if type(item) is tuple and item[0] == 'fold':
             self.toggle_fold(item[1])
             return
@@ -617,19 +638,21 @@ class Hub:
         if not self.term:                    # the home view: tool cards, recent scripts
             self.card_tapped(item)
             return
-        self.reset_find()
-        if isinstance(item, search.ViewHit):
+        if not isinstance(item, search.Hit) and not isinstance(item, (search.ViewHit,
+                                                                      search.NameHit)):
+            self.reset_find()
+            self.open_item(item)                 # a tool or a window: folds the hub
+            return
+        self.find.field.unfocus()
+        if not KEEP_FIND_OPEN:
             self.window.minimise()
+        if isinstance(item, search.ViewHit):
             from . import scriptview
             scriptview.open_script_window(item.hit.path, item.hit.line)
         elif isinstance(item, search.NameHit):
-            self.window.minimise()
             self.opener.go(item.path)
-        elif isinstance(item, search.Hit):
-            self.window.minimise()
-            self.opener.go(item.path, item.line, item.start, item.end)
         else:
-            self.open_item(item)
+            self.opener.go(item.path, item.line, item.start, item.end)
 
     def reset_find(self):
         self.find.field.set_value('')

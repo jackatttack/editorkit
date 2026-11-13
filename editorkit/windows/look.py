@@ -23,7 +23,7 @@ DOCK_LINE = 0.7               # let go with the panel's top below this share of 
                               #   editor's height: it goes to the keyboard's place
 TAB_LINE = -16                # let go with a window's top this far above the code:
                               #   it goes into the tab row
-TAB_DROP_ALL = True           # every window can be dropped into the tab row (to_tab);
+TAB_DROP_ALL = False          # True: every window can be dropped into the tab row (to_tab);
                               #   False: only windows with their own on_tab_drop
 TAB_APPEAR_SECONDS = 0.35     # a window's new tab fades in over this as the window lands in it
 TAB_SHRINK_ALPHA = 0.35       # how see-through a window is as it flies into its tab
@@ -54,6 +54,8 @@ PIN_FONT = ('<system-bold>', 15)
 TOUCH_PAD = 8                 # a clear rim around a pin that still counts as the pin
 PIN_STACK_GAP = 6             # new pins stack down the right edge
 DEFAULT_HEIGHT_SHARE = 0.6    # a new window: the editor's width, this share of its height
+DEFAULT_MAX_WIDTH = 600       # ...but never wider than this (a wide screen: the iPad)
+DEFAULT_MAX_HEIGHT = 640      # ...nor taller than this
 DEFAULT_MIN_SIZE = (96, 44)   # header only; Window(min_size=...) asks for more
 KEYBOARD_HEIGHT = 300
 TOP_BAR_HEIGHT = 128          # Window(home='top_bar'): header plus one row of controls

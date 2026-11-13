@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.2.0",
- "staged": "2026-11-13 09:11",
+ "version": "0.2.1",
+ "staged": "2026-11-13 11:33",
  "files": [
   [
    "LICENSE",
@@ -150,7 +150,7 @@
   ],
   [
    "editorkit/tabpull.py",
-   10326
+   11501
   ],
   [
    "editorkit/tabs.py",
@@ -318,11 +318,11 @@
   ],
   [
    "editorkit/windows/homes.py",
-   16576
+   16668
   ],
   [
    "editorkit/windows/look.py",
-   7467
+   7616
   ],
   [
    "editorkit/windows/manager.py",
@@ -414,7 +414,7 @@
   ],
   [
    "editorkit_toolbox/hub.py",
-   31085
+   32462
   ],
   [
    "editorkit_toolbox/lens.py",

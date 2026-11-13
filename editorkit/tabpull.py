@@ -62,6 +62,13 @@ def is_pull(side, down, distance=PULL_DISTANCE):
     return down > distance and down > abs(side)
 
 
+def past_line(y, line_y):
+    """A pull is a finger below the pull line. Sideways reorders drift at
+    most about 40pt down, so they never reach a line PULL_DISTANCE below the
+    tab strip."""
+    return y > line_y
+
+
 def match_path(name, index_among_same, paths):
     """The open tab's path for a tab labelled name: by file name, and among
     tabs sharing that name by their order. None when nothing matches."""
@@ -151,6 +158,25 @@ def path_for(view):
     return match_path(name, len(earlier), tabs.open_tabs())
 
 
+def pull_line(start_y):
+    """Where a pull counts, in window points: PULL_DISTANCE below the tab
+    strip's bottom edge. (Measured from where the hold began, the line landed
+    near the bottom of an iPad's screen: that start point cannot be trusted
+    there.) Falls back to below the start when the strip is not found."""
+    strip = tab_strip()
+    try:
+        frame = strip.convertRect_toView_(strip.bounds(), None)
+        return frame.origin.y + frame.size.height + PULL_DISTANCE
+    except Exception:
+        return start_y + PULL_DISTANCE
+
+
+def last_trace():
+    """The last hold's phases as (phase, x, y), for debugging a device:
+    from editorkit import tabpull; print(tabpull.last_trace())"""
+    return list(store().get('trace', []))
+
+
 # --- Attaching and the clock ------------------------------------------------
 
 def attach():
@@ -203,10 +229,8 @@ class PullHint:
     line at the pull distance, both laid over the whole window and deaf to
     touches. live() colours them once the finger is past the line."""
 
-    def __init__(self, name, start_y):
-        window = ObjCClass('UIApplication').sharedApplication().keyWindow()
+    def __init__(self, name, line_y, window):
         width = window.bounds().size.width
-        line_y = start_y + PULL_DISTANCE
         self.line = ui.View(frame=(0, line_y, width, 2), background_color=LINE_COLOUR)
         self.note = ui.Label(frame=(0, line_y + 6, width - 16, 18), font=NOTE_FONT,
                              alignment=ui.ALIGN_RIGHT, text=NOTE_BEFORE)
@@ -251,27 +275,32 @@ def handle(recogniser):
     if hold is None:
         return
     phase = recogniser.state()
-    point = recogniser.locationInView_(None)          # window coordinates
+    point = recogniser.locationInView_(None)          # the tab's window coordinates
+    trace = state.setdefault('trace', [])
+    if phase == BEGAN:
+        del trace[:]
+    if len(trace) < 60:
+        trace.append((int(phase), round(point.x), round(point.y)))
     if phase == BEGAN:
         # The path now: once the drag starts, the tab leaves the strip.
         view = recogniser.view()
         if hold.get('hint') is not None:
             hold['hint'].remove()
+        line_y = pull_line(point.y)
         hold.update(start=(point.x, point.y), path=path_for(view), crossed=False,
-                    hint=None)
+                    hint=None, line=line_y)
         try:
-            hold['hint'] = PullHint(tab_label(view), point.y)
+            window = view.window() or ObjCClass('UIApplication').sharedApplication().keyWindow()
+            hold['hint'] = PullHint(tab_label(view), line_y, window)
             hold['hint'].follow(point.x, point.y)
         except Exception:
             traceback.print_exc()
         return
     if hold['start'] is None:
         return
-    side = point.x - hold['start'][0]
-    down = point.y - hold['start'][1]
+    pulling = past_line(point.y, hold['line'])
     hint = hold.get('hint')
     if phase == CHANGED:
-        pulling = is_pull(side, down)
         if pulling and not hold['crossed']:
             tap()
         hold['crossed'] = pulling
@@ -283,8 +312,8 @@ def handle(recogniser):
         hint.remove()
         hold['hint'] = None
     path, hold['start'] = hold['path'], None
-    if phase == ENDED and path and is_pull(side, down):
-        state['pending'] = path                         # delivered on the next tick                         # delivered on the next tick
+    if phase == ENDED and path and pulling:
+        state['pending'] = path                         # delivered on the next tick                         # delivered on the next tick                         # delivered on the next tick
 
 
 setattr(builtins, HANDLER_NAME, handle)

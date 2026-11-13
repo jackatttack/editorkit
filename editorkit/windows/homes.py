@@ -277,7 +277,9 @@ class Homes(object):
             top = keyboard - height - look.EDGE
             return (look.EDGE, max(look.EDGE, top), width, height)
         if frame == 'panel':
-            width, height = self.size or (width, round(editor_height * look.DEFAULT_HEIGHT_SHARE))
+            width, height = self.size or (
+                min(width, look.DEFAULT_MAX_WIDTH),
+                min(round(editor_height * look.DEFAULT_HEIGHT_SHARE), look.DEFAULT_MAX_HEIGHT))
             return (look.EDGE, look.EDGE, width, height)
         raise ValueError('unknown home %r: use %s, panel or (x, y, w, h)'
                          % (frame, ', '.join(FRAME_HOMES)))
