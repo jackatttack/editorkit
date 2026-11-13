@@ -22,7 +22,7 @@ Pythonista quits, and is safe to call from any thread. It works by reaching
 Pythonista's own (private) classes through objc_util, so a Pythonista update
 could change things. See README.md and docs/FINDINGS.txt.
 """
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 from .annotations import STYLES, annotate, clear_annotations
 from .browser import browser_visible, hide_browser, show_browser, toggle_browser

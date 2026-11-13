@@ -4,8 +4,8 @@ open_quick(path) targets a file: while it is the open tab every tool works;
 otherwise only the tools marked 'file' (copy, duplicate) show, with 📝 Open
 to make it the open tab, after which the full set appears by itself.
 
-Sections of cards on editorkit's card kit (a heading per section, a grid
-that reflows to the width, pinch to zoom). ? in the header turns on help
+One compact row of buttons per section on editorkit's card kit, so every
+tool fits one screen and a redraw never leaves you scrolling (pinch to zoom). ? in the header turns on help
 mode: a tap then explains the tool (tiles.Card). Clear and
 Delete need a second tap within CONFIRM_SECONDS. Tools that change the
 script, or open one, bring the editor forward.
@@ -134,6 +134,10 @@ class QuickTool:
     # --- Cards ------------------------------------------------------------
 
     def refresh(self):
+        """Every tool as a compact button, one labelled row per section, so
+        the whole set fits one screen: a tap that redraws the page (arming
+        Clear or Delete) leaves nothing to scroll back to. An armed tool
+        turns red in place and reads ARMED_TITLE."""
         if self.pending_replace is not None:
             self.show_diff()             # Replace waits for Replace or Cancel
             return
@@ -145,19 +149,16 @@ class QuickTool:
         page = cards.Page()
         if self.help_mode:
             page.note(HELP_NOTE)
-        section, row = None, []
+        sections = []                    # [(section, [Action])] in TOOLS order
         for tool in tools:
-            if tool['section'] != section:
-                if row:
-                    page.grid(row, min_width=CARD_MIN_WIDTH)
-                section, row = tool['section'], []
-                page.heading(section)
+            if not sections or sections[-1][0] != tool['section']:
+                sections.append((tool['section'], []))
             armed = self.armed == tool['do']
-            row.append(cards.Card(ARMED_TITLE if armed else tool['title'], item=tool,
-                                  body=cards.face(tool['icon'], tool['caption']),
-                                  colour=DANGER if armed else tool.get('tint')))
-        if row:
-            page.grid(row, min_width=CARD_MIN_WIDTH)
+            label = '%s %s' % (tool['icon'], ARMED_TITLE if armed else tool['title'])
+            sections[-1][1].append(cards.Action(label, tool, armed=armed))
+        for section, actions in sections:
+            page.note(section)
+            page.buttons(actions)
         self.grid.show(page)
 
     def tapped(self, tool):
