@@ -128,6 +128,34 @@ def reveal(index, top=60):
 
 
 @_app.on_main
+def visible_lines():
+    """(first, last): the 1-based lines of the open script showing in the
+    code view now (a line cut off at an edge counts). Lines under a window
+    resting over the code count too. None when no script is showing."""
+    from objc_util import CGPoint
+    view = _app.text_view()
+    if view is None:
+        return None
+    source = text()
+    inset = view.contentInset()
+    offset = view.contentOffset()
+    height = view.bounds().size.height
+    top = offset.y + inset.top
+    bottom = offset.y + height - inset.bottom - 1
+    return (_line_at(view, source, CGPoint(0, top)),
+            _line_at(view, source, CGPoint(0, max(top, bottom))))
+
+
+def _line_at(view, source, point):
+    """The 1-based line of source at point, in the text view's coordinates."""
+    position = view.closestPositionToPoint_(point)
+    if position is None:
+        return 1
+    utf16 = int(view.offsetFromPosition_toPosition_(view.beginningOfDocument(), position))
+    return source.count('\n', 0, python_index(source, utf16)) + 1
+
+
+@_app.on_main
 def replace(start, end, new_text):
     """Replace start..end (Python indices) with new_text. Goes through the
     text view so the final character can be replaced too. True on success."""

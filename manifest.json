@@ -2,7 +2,7 @@
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
  "version": "0.2.1",
- "staged": "2026-11-13 17:15",
+ "staged": "2026-11-13 20:06",
  "files": [
   [
    "LICENSE",
@@ -46,7 +46,7 @@
   ],
   [
    "editorkit/__init__.py",
-   2641
+   2656
   ],
   [
    "editorkit/_app.py",
@@ -138,7 +138,7 @@
   ],
   [
    "editorkit/script.py",
-   6285
+   7337
   ],
   [
    "editorkit/sources.py",
@@ -395,6 +395,14 @@
   [
    "editorkit_toolbox/docs_index.py",
    5555
+  ],
+  [
+   "editorkit_toolbox/explain.py",
+   39195
+  ],
+  [
+   "editorkit_toolbox/explain_subject.py",
+   15003
   ],
   [
    "editorkit_toolbox/filebrowser.py",

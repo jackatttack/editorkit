@@ -31,7 +31,7 @@ from .highlight import clear_highlights, highlight
 from .keyrow import keyboard, reset_keyboard
 from .stores import store
 from .script import (find_all, insert, replace, replace_all, reveal, select, selection,
-                     text)
+                     text, visible_lines)
 from .tabs import current_file, open_file, open_tabs, select_tab, selected_tab
 from .tabpull import on_pull as on_tab_pull
 from .themes import (current_theme, install_theme, refresh_theme, theme_colours,
