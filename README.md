@@ -29,8 +29,13 @@ The installer:
 
 ## Use it: Toolbox for Pythonista
 
-Tap the wrench, then **Toolbox**. The hub opens over your code with Files,
-Find, Scissors, Script, Snippets, Console, Quick, Lens and Docs.
+Tap the wrench, then **Toolbox**. The hub opens over your code with Learn,
+Files, Find, Scissors, Script, Snippets, Console, Quick, Lens, Docs and
+Explain. ℹ️ About on the hub says what everything is.
+
+Snippets comes with a library of over a hundred: Pythonista's own modules,
+editorkit, everyday Python, web and data, maths and plots, and whole-file
+templates. 📄 opens a scratch pad beside your script to try them in.
 
 ## Build with it: editorkit
 
@@ -38,8 +43,10 @@ editorkit gives you windows over Pythonista's editor, keyboard and console,
 pages built from cards, and the editor itself: text, selections, highlights
 and themes.
 
-Start with the lessons in `Toolbox/lessons/`, in order, then the small
-scripts in `Toolbox/examples/`: one idea each.
+Open 🎓 **Learn** in Toolbox. Nine lessons, in order, each walk you through
+their own code while it runs, then the examples, starting with finished
+tools to use and copy. Change them freely: ♻️ Restore in Learn puts them
+back, and updating keeps your versions in `Documents/_to_delete`.
 
 ## Licence
 

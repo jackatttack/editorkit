@@ -9,13 +9,17 @@ Run this script; run it again any time to update. It:
 
 Run beside the packages (a downloaded or staged copy of the repo), it
 installs from there; otherwise it downloads the repo from GitHub.
-Your settings and saved data are kept: they live elsewhere.
+Your settings and saved data are kept: they live elsewhere. Lessons and
+examples you changed are kept too: an update moves your version to
+Documents/_to_delete before the new one lands (update_learn_folder).
 """
+import filecmp
 import io
 import os
 import shutil
 import sys
 import tempfile
+import time
 import urllib.request
 import zipfile
 
@@ -31,6 +35,9 @@ LAUNCHER = 'Toolbox.py'
 WRENCH_TITLE = 'Toolbox'
 WRENCH_ICON = 'Primaries_Home'
 WRENCH_COLOUR = '#F26EFF'
+LEARN_FOLDERS = ('examples', 'lessons')     # yours to change: updated with care
+ORIGINALS = os.path.join(HOME, '.originals')   # the release's untouched copies (Learn's ♻️ Restore)
+SET_ASIDE = os.path.join(DOCUMENTS, '_to_delete')
 
 
 def here():
@@ -65,6 +72,51 @@ def replace_tree(source, target):
     shutil.copytree(source, target, ignore=shutil.ignore_patterns('__pycache__', '.git'))
 
 
+def same_file(first, second):
+    return (os.path.isfile(first) and os.path.isfile(second)
+            and filecmp.cmp(first, second, shallow=False))
+
+
+def set_aside(path):
+    """Move path into Documents/_to_delete, stamped with the time: never deleted."""
+    os.makedirs(SET_ASIDE, exist_ok=True)
+    moved = os.path.join(SET_ASIDE, '%s_%s' % (time.strftime('%Y%m%d_%H%M%S'),
+                                               os.path.basename(path)))
+    shutil.move(path, moved)
+    return moved
+
+
+def update_learn_folder(source, folder):
+    """Bring Toolbox/<folder> up to date without losing anything you wrote.
+
+    Every file in the release arrives. One you changed (it differs from the
+    last release's untouched copy) is moved to Documents/_to_delete first. A
+    file the release dropped goes only if you never changed it. Files you
+    added are left alone. Then .originals/<folder> holds this release's
+    untouched copies, for the next update and for Learn's ♻️ Restore.
+    Returns the paths of your versions that were set aside."""
+    installed_folder = os.path.join(HOME, folder)
+    old_originals = os.path.join(ORIGINALS, folder)
+    os.makedirs(installed_folder, exist_ok=True)
+    new_names = set(name for name in os.listdir(source)
+                    if os.path.isfile(os.path.join(source, name)))
+    kept = []
+    for name in sorted(new_names):
+        new = os.path.join(source, name)
+        installed = os.path.join(installed_folder, name)
+        if os.path.exists(installed) and not same_file(installed, new):
+            if not same_file(installed, os.path.join(old_originals, name)):
+                kept.append(set_aside(installed))
+        shutil.copy2(new, installed)
+    if os.path.isdir(old_originals):
+        for name in os.listdir(old_originals):
+            installed = os.path.join(installed_folder, name)
+            if name not in new_names and same_file(installed, os.path.join(old_originals, name)):
+                os.remove(installed)
+    replace_tree(source, os.path.join(ORIGINALS, folder))
+    return kept
+
+
 def forget_modules():
     """Drop loaded copies, so the fresh install is what imports next."""
     for name in list(sys.modules):
@@ -84,9 +136,14 @@ def main():
         print('  ✓ Toolbox/%s' % LAUNCHER)
         for folder in FOLDERS:
             source = os.path.join(root, folder)
-            if os.path.isdir(source):
+            if not os.path.isdir(source):
+                continue
+            if folder in LEARN_FOLDERS:
+                for path in update_learn_folder(source, folder):
+                    print('  ↪ your version kept in %s' % os.path.relpath(path, DOCUMENTS))
+            else:
                 replace_tree(source, os.path.join(HOME, folder))
-                print('  ✓ Toolbox/%s' % folder)
+            print('  ✓ Toolbox/%s' % folder)
         forget_modules()
         import editorkit
         from editorkit import wrench
@@ -100,4 +157,5 @@ def main():
             shutil.rmtree(temp, ignore_errors=True)
 
 
-main()
+if __name__ == '__main__':      # the README's bootstrap runs it as __main__ too
+    main()

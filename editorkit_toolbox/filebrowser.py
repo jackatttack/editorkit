@@ -39,6 +39,8 @@ PREVIEW_KEY = 'deck-files-preview'   # gets -2, -3 … while an earlier preview 
 FILL_ABOVE_PREVIEW = True    # the tiles fill the space above the preview
 OPEN_ICON = '↗'
 SEARCH_ICON = '🔎'           # opens Search, which is 🔎
+NEW_SCRIPT_ICON = '📄'       # header: a new script in the folder shown
+NEW_SCRIPT_NAME = 'untitled.py'
 CONFIRM_SECONDS = 3.0        # how long an armed delete waits for its second tap
 START_ZOOM = 0.8             # the first size; a pinch is remembered after that
 ZOOM_KEY = 'files'
@@ -88,6 +90,7 @@ class FilesTool:
         window.every(self.tick)
         window.add_button(OPEN_ICON, lambda _window: self.open_previewed(), name='open')
         window.add_button(SEARCH_ICON, lambda _window: self.open_search(), name='search')
+        window.add_button(NEW_SCRIPT_ICON, lambda _window: self.new_script(), name='new-script')
         window.on('open', lambda _window: self.window_opened())
 
     def begin(self):
@@ -215,6 +218,19 @@ class FilesTool:
         self.pair.put_keys_away()
         from . import hub
         hub.open_find(scope=self.folder or DOCUMENTS)
+
+    def new_script(self):
+        """📄: a new untitled.py (numbered when taken) in the folder shown,
+        opened in the editor. Files folds away so you can start typing."""
+        folder = self.folder or DOCUMENTS
+        try:
+            path = fileops.new_file(folder, NEW_SCRIPT_NAME)
+        except (OSError, ValueError) as problem:
+            self.say('Could not make a script: %s' % problem)
+            return
+        self.refresh()
+        self.window.minimise()
+        ek.open_file(path)
 
     # --- Actions ----------------------------------------------------------
 

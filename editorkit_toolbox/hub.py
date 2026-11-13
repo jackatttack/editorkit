@@ -128,6 +128,7 @@ RECENT_ON_TOOLS = 12             # recent scripts under the tool cards
 KEEP_FIND_OPEN = True            # opening a found script keeps the hub and its search on
                                  #   screen (several can be opened); False: the hub folds
 CLEAR_ICON = '⌫'                 # header, while Find holds a term: back to the home view
+INTRO = 'Tools over your code, built on editorkit. New here? 🎓 Learn has lessons and examples.'
 
 
 def tool_cards(specs):
@@ -147,10 +148,14 @@ def recent_cards(paths):
 
 
 def hub_page(specs, helping=False, recent=()):
-    """The Tools page: the tool cards, then recent scripts as file cards."""
+    """The Tools page: on the home view a line on what Toolbox is with ℹ️
+    About, then the tool cards, then recent scripts as file cards."""
     page = card_kit.Page()
     if helping:
         page.note(HELP_NOTE)
+    if not any(spec['item'][0] == 'back' for spec in specs):    # home, not a group
+        page.note(INTRO)
+        page.buttons([card_kit.Action('ℹ️ About', ('about', None))])
     page.grid(tool_cards(specs), min_width=CARD_MIN_WIDTH)
     if recent:
         page.heading(RECENT_HEADING)
@@ -740,6 +745,11 @@ class Hub:
             scriptview.open_script_window(item.hit.path, item.hit.line)
             return
         kind, thing = item
+        if kind == 'about':
+            from . import learn
+            self.card.set_text(learn.ABOUT)
+            self.window.show_sheet(self.card)
+            return
         if kind == 'back':
             self.group = None
             self.refresh_grid()

@@ -29,7 +29,7 @@ from editorkit import clip, layouts, tiles
 from editorkit.web import cards
 from editorkit.web import tiles as web_tiles
 
-from . import snippet_seeds
+from . import snippet_library, snippet_seeds
 
 from . import snippets_core      # vendored: the deck needs nothing outside its folder
 
@@ -44,6 +44,10 @@ CONFIRM_SECONDS = 3.0            # a second 🗑 within this deletes
 FIELD_CHIPS = ('${cursor}', '${date}', '${time}', '${clipboard}')
 NEW_ICON = '➕'
 START_ZOOM = 0.8                 # the first size; a pinch is remembered after that
+SEEN_STORE = 'snippet_seeds'     # ek.store: seeds already offered, so a deleted one stays deleted
+SCRATCH_ICON = '📄'              # header: open the scratch pad beside the open script
+SCRATCH_NAME = 'scratch_pad.py'
+SCRATCH_TEXT = '# Scratch pad: try snippets here. Snippets never overwrites it.\n'
 SHOWING_PLACES = ('dock', 'panel', 'console')   # places worth going back to
 FOLDED_PLACES = ('tray', 'pin', 'hidden')       # places it comes back from
 
@@ -79,25 +83,66 @@ def library_page(library, group_id, armed_id):
 
 # --- The library ----------------------------------------------------------
 
+def all_seeds():
+    """Every seed group: the starters (snippet_seeds), then the big library
+    (snippet_library). Groups with the same name are joined into one, and a
+    title the group already has is skipped: the first one wins."""
+    merged = []
+    for name, colour, snippets in list(snippet_seeds.SEEDS) + list(snippet_library.SEEDS):
+        group = next((group for group in merged if group[0] == name), None)
+        if group is None:
+            group = (name, colour, [])
+            merged.append(group)
+        titles = set(title for title, _ in group[2])
+        for title, text in snippets:
+            if title not in titles:
+                group[2].append((title, text))
+                titles.add(title)
+    return merged
+
+
+def seeds_to_add(columns, seeds, offered):
+    """([(group, colour, title, text)] to add, every key now offered).
+
+    Each seed is offered once, keyed 'group/title': one you delete stays
+    deleted, and one already in that group (same title) is never doubled.
+    New seeds in a later release reach libraries that already exist."""
+    have = set((column['name'], snippet['title'])
+               for column in columns for snippet in column['snippets'])
+    to_add, keys = [], list(offered)
+    for name, colour, snippets in seeds:
+        for title, text in snippets:
+            key = '%s/%s' % (name, title)
+            if key in keys:
+                continue
+            keys.append(key)
+            if (name, title) not in have:
+                to_add.append((name, colour, title, text))
+    return to_add, keys
+
+
 def open_library(path=LIBRARY_PATH):
-    """The library at path; a missing one is created from the seeds."""
+    """The library at path, created if missing, with every seed it has not
+    been offered yet added (seeds_to_add)."""
     folder = os.path.dirname(path)
     if not os.path.isdir(folder):
         os.makedirs(folder)
     fresh = not os.path.exists(path)
     library = snippets_core.Library(path)
-    if fresh:
-        first = True
-        for name, colour, snippets in snippet_seeds.SEEDS:
-            if first:
-                column = library.columns[0]
-                column['name'], column['colour'] = name, colour
-                first = False
-            else:
-                column = library.add_column(name, colour)
-            for title, text in snippets:
-                library.add_snippet(column['id'], title, text)
+    memory = ek.store(SEEN_STORE)
+    to_add, keys = seeds_to_add(library.columns, all_seeds(),
+                                [] if fresh else memory.get('offered', []))
+    if to_add:
+        if fresh and library.columns and not library.columns[0]['snippets']:
+            first = library.columns[0]               # a new library's empty first group
+            first['name'], first['colour'] = to_add[0][0], to_add[0][1]
+        by_name = dict((column['name'], column) for column in library.columns)
+        for name, colour, title, text in to_add:
+            if name not in by_name:
+                by_name[name] = library.add_column(name, colour)
+            library.add_snippet(by_name[name]['id'], title, text)
         library.save()
+    memory['offered'] = keys
     return library
 
 
@@ -118,11 +163,28 @@ class SnippetsTool:
                                  zoom_key='snippets')
         window.add_page(TITLE, self.board)
         window.add_button(NEW_ICON, lambda _window: self.new_snippet(), name='new')
+        window.add_button(SCRATCH_ICON, lambda _window: self.open_scratch_pad(), name='scratch')
         window.on('place', self.place_changed)
         self.prompt = layouts.prompt(window)
         window.every(self.tick)
         self.load()
         self.refresh()
+
+    def open_scratch_pad(self):
+        """📄: scratch_pad.py beside the open script (in Documents when none is
+        open), made the first time and never overwritten, opened in the editor.
+        Snippets stays up, ready to type into it."""
+        current = ek.current_file()
+        folder = os.path.dirname(current) if current else os.path.expanduser('~/Documents')
+        path = os.path.join(folder, SCRATCH_NAME)
+        if not os.path.exists(path):
+            try:
+                with open(path, 'x', encoding='utf-8') as handle:
+                    handle.write(SCRATCH_TEXT)
+            except OSError as problem:
+                print('Snippets could not make a scratch pad: %s' % problem)
+                return
+        ek.open_file(path)
 
     def load(self):
         try:

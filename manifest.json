@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.2.1",
- "staged": "2026-11-13 20:06",
+ "version": "0.3.0",
+ "staged": "2026-11-13 23:06",
  "files": [
   [
    "LICENSE",
@@ -10,7 +10,7 @@
   ],
   [
    "README.md",
-   1390
+   1851
   ],
   [
    "codesense/README.md",
@@ -74,7 +74,7 @@
   ],
   [
    "editorkit/fileops.py",
-   3134
+   3916
   ],
   [
    "editorkit/files.py",
@@ -406,7 +406,7 @@
   ],
   [
    "editorkit_toolbox/filebrowser.py",
-   12245
+   12955
   ],
   [
    "editorkit_toolbox/filecards.py",
@@ -422,7 +422,11 @@
   ],
   [
    "editorkit_toolbox/hub.py",
-   32462
+   32983
+  ],
+  [
+   "editorkit_toolbox/learn.py",
+   13603
   ],
   [
    "editorkit_toolbox/lens.py",
@@ -465,12 +469,16 @@
    37189
   ],
   [
+   "editorkit_toolbox/snippet_library.py",
+   31164
+  ],
+  [
    "editorkit_toolbox/snippet_seeds.py",
    3776
   ],
   [
    "editorkit_toolbox/snippets.py",
-   9958
+   13064
   ],
   [
    "editorkit_toolbox/snippets_core.py",
@@ -478,59 +486,71 @@
   ],
   [
    "editorkit_toolbox/tools.py",
-   11408
+   11953
   ],
   [
-   "examples/annotate_and_highlight.py",
-   430
+   "examples/editor_annotate_and_highlight.py",
+   330
   ],
   [
-   "examples/keys.py",
-   666
+   "examples/editor_keys.py",
+   566
   ],
   [
-   "examples/text_box.py",
+   "examples/editor_text_box.py",
    692
   ],
   [
-   "examples/toolbar_and_views.py",
-   982
+   "examples/editor_toolbar_and_views.py",
+   882
   ],
   [
-   "examples/watch_changes.py",
-   635
+   "examples/editor_watch_changes.py",
+   535
   ],
   [
-   "examples/windows_hello.py",
-   552
+   "examples/tool_finder.py",
+   2635
   ],
   [
-   "examples/windows_homes.py",
+   "examples/tool_tab_switcher.py",
+   1389
+  ],
+  [
+   "examples/tool_word_pad.py",
+   1544
+  ],
+  [
+   "examples/window_hello.py",
+   437
+  ],
+  [
+   "examples/window_homes.py",
    1042
   ],
   [
-   "examples/windows_line_watcher.py",
-   1524
+   "examples/window_line_watcher.py",
+   1395
   ],
   [
-   "examples/windows_notes.py",
-   1812
+   "examples/window_notes.py",
+   1731
   ],
   [
-   "examples/windows_notes.txt",
+   "examples/window_notes.txt",
    6
   ],
   [
-   "examples/windows_show_anything.py",
-   908
+   "examples/window_show_anything.py",
+   779
   ],
   [
-   "examples/windows_stopwatch.py",
-   2895
+   "examples/window_stopwatch.py",
+   2766
   ],
   [
    "install.py",
-   3747
+   6550
   ],
   [
    "launchers/Toolbox.py",
@@ -549,8 +569,28 @@
    3517
   ],
   [
-   "lessons/04_the_feed.py",
+   "lessons/04_edit_the_code.py",
+   4813
+  ],
+  [
+   "lessons/05_work_in_the_background.py",
+   4325
+  ],
+  [
+   "lessons/06_tabs_and_files.py",
+   3671
+  ],
+  [
+   "lessons/07_the_keyboards_place.py",
+   3048
+  ],
+  [
+   "lessons/08_the_feed.py",
    3289
+  ],
+  [
+   "lessons/09_part_of_pythonista.py",
+   2952
   ]
  ]
 }

@@ -61,6 +61,27 @@ def duplicate(path):
     return target
 
 
+def free_name(folder, name):
+    """name if folder has nothing by that name, else 'stem 2.ext',
+    'stem 3.ext' and so on, whichever is free first."""
+    name = check_name(name)
+    stem, extension = os.path.splitext(name)
+    candidate, number = name, 2
+    while os.path.exists(os.path.join(folder, candidate)):
+        candidate = '%s %d%s' % (stem, number, extension)
+        number += 1
+    return candidate
+
+
+def new_file(folder, name='untitled.py', text=''):
+    """Make a new file in folder under a free name (free_name) holding text;
+    returns its path. Never overwrites: the file is opened for creation only."""
+    path = os.path.join(folder, free_name(folder, name))
+    with open(path, 'x', encoding='utf-8') as handle:
+        handle.write(text)
+    return path
+
+
 def move(path, folder):
     """Move a file or folder into folder; returns its new path."""
     path, folder = os.path.normpath(path), os.path.normpath(folder)

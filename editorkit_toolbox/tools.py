@@ -27,6 +27,11 @@ def shipped(module):
     return importlib.util.find_spec('%s.%s' % (__package__, module)) is not None
 
 
+def open_learn():
+    from . import learn
+    learn.open_learn()
+
+
 def open_scissors():
     """The Scissors bar over the top of the code (the keyboard version is
     still a script window's ✂️ keys, until it is retired)."""
@@ -182,6 +187,12 @@ GAMES.extend(installed_games())
 
 
 TOOLS = [
+    {'name': 'Learn', 'emoji': '🎓', 'what': 'lessons and examples',
+     'home': 'over the code', 'open': open_learn,
+     'about': 'The lessons and examples that come with Toolbox. A lesson walks you '
+              'through its own code: open it, tap ▶ to run it, and its window explains '
+              'each step while the editor shows that step\'s code. Examples are small '
+              'scripts, one idea each. Start here to build your own tools with editorkit.'},
     {'name': 'Files', 'emoji': '📁', 'what': 'browse and preview',
      'home': 'over the code', 'open': open_files,
      'about': 'Folders and files as tiles. Tap a folder to go in, a chip in the '
