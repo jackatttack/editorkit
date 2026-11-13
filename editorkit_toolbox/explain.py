@@ -47,7 +47,7 @@ from . import docs, docs_index
 from . import explain_subject as subjects
 from . import lens_detect as detect
 from .docs import card_kit, layouts, web_tiles   # the card kit, layouts and tiles Docs uses
-from .lens import describe, reachable, short_signature
+from .lookup import describe, reachable, short_signature
 
 
 # --- Settings -------------------------------------------------------------
@@ -222,7 +222,7 @@ def last_part(subject):
 # --- Facets -----------------------------------------------------------------
 
 def header(tool, subject, page):
-    """The name, its signature and kind, ⤵ to insert; Load, Lens, did you mean."""
+    """The name, its signature and kind, ⤵ to insert; Load, did you mean."""
     thing = tool.thing
     if subject.kind == 'lines':
         title = '%d lines selected' % (subject.text.strip('\n').count('\n') + 1)
@@ -260,8 +260,6 @@ def header(tool, subject, page):
     page.grid([card_kit.Card(title, body=body, colour=colour, actions=actions)],
               min_width=CARD_WIDTH)
     buttons = []
-    if subject.kind in ('number', 'colour'):
-        buttons.append(card_kit.Action('🔬 Tune in Lens', ('lens',), look='go'))
     if thing is None and subject.dotted:
         root = subject.dotted.split('.', 1)[0]
         if root not in sys.modules and importable(root):
@@ -868,9 +866,6 @@ class ExplainTool:
             elif kind == 'find':
                 from . import hub
                 hub.open_find(item[1])
-            elif kind == 'lens':
-                from . import lens
-                lens.open_lens()
         except Exception as problem:
             traceback.print_exc()
             self.cards.say('Could not do that: %s' % problem)

@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.3.1",
- "staged": "2026-11-13 23:19",
+ "version": "0.3.2",
+ "staged": "2026-11-13 23:38",
  "files": [
   [
    "LICENSE",
@@ -10,7 +10,7 @@
   ],
   [
    "README.md",
-   1851
+   1848
   ],
   [
    "codesense/README.md",
@@ -390,7 +390,7 @@
   ],
   [
    "editorkit_toolbox/docs.py",
-   10648
+   10674
   ],
   [
    "editorkit_toolbox/docs_index.py",
@@ -398,7 +398,7 @@
   ],
   [
    "editorkit_toolbox/explain.py",
-   39195
+   38962
   ],
   [
    "editorkit_toolbox/explain_subject.py",
@@ -429,16 +429,16 @@
    13603
   ],
   [
-   "editorkit_toolbox/lens.py",
-   22144
-  ],
-  [
    "editorkit_toolbox/lens_detect.py",
    6924
   ],
   [
    "editorkit_toolbox/lineops.py",
    6496
+  ],
+  [
+   "editorkit_toolbox/lookup.py",
+   2901
   ],
   [
    "editorkit_toolbox/quick.py",
@@ -486,7 +486,7 @@
   ],
   [
    "editorkit_toolbox/tools.py",
-   11953
+   11354
   ],
   [
    "examples/editor_annotate_and_highlight.py",
@@ -550,7 +550,7 @@
   ],
   [
    "install.py",
-   6550
+   6553
   ],
   [
    "launchers/Toolbox.py",
@@ -591,6 +591,10 @@
   [
    "lessons/09_part_of_pythonista.py",
    2952
+  ],
+  [
+   "lessons/10_build_a_tool.py",
+   5498
   ]
  ]
 }

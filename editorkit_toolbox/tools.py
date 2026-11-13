@@ -39,11 +39,6 @@ def open_scissors():
     return scissors_bar.open_scissors_bar()
 
 
-def open_lens():
-    from . import lens
-    return lens.open_lens()
-
-
 def open_docs():
     from . import docs
     return docs.open_docs()
@@ -242,13 +237,7 @@ TOOLS = [
     {'name': 'Games', 'emoji': '🎮', 'home': 'games', 'group': GAMES, 'open': None,
      'about': 'Games played over the code: Maths Games, their web ports beside '
               'them for comparison, and Snake. Tap to see them.'},
-    {'name': 'Lens', 'emoji': '🔬', 'what': 'tune the value here',
-     'home': 'at the top of the code', 'open': open_lens,
-     'about': 'A look at what is under the cursor, and a control that fits it. '
-              'On a number: steps of its last digit (0.35 steps by 0.01) and a '
-              'slider. On a colour (\'#E8365A\', (0.2, 0.4, 1.0) or (255, 128, 0)): '
-              'a swatch and R G B sliders. Values are written the way they were, '
-              'and one slider drag is one undo. More lenses to come.'},
+
     {'name': 'Docs', 'emoji': '📖', 'what': "Pythonista's documentation",
      'home': 'over the code', 'open': open_docs,
      'about': 'Pythonista\'s own documentation, searched and read over the code. '

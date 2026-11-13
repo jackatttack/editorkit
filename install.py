@@ -2,7 +2,7 @@
 
 Run this script; run it again any time to update. It:
   - puts the editorkit library, the Toolbox app and codesense (the code
-    analysis behind Lens) in site-packages-3,
+    analysis behind Explain) in site-packages-3,
   - makes Documents/Toolbox/ with the Toolbox launcher, examples, lessons
     and docs,
   - adds Toolbox to the editor's wrench menu (once; reruns update it).

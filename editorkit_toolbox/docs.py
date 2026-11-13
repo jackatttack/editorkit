@@ -198,7 +198,7 @@ class DocsTool:
         self.search_due = time.time() + TYPING_PAUSE
 
     def look_up(self, names, term):
-        """Open at the first of names the docs know (Lens's 📖), with a
+        """Open at the first of names the docs know (a tool asking for a name), with a
         search for term behind it for ◀ Results; just the search when none
         of the names is known."""
         try:
@@ -266,7 +266,7 @@ class DocsTool:
 
 def open_docs(names=(), term=''):
     """Open Docs over the code (or bring it back). names: dotted names to
-    open at, the first the docs know (Lens's 📖); term: a search behind it."""
+    open at, the first the docs know (a tool asking for a name); term: a search behind it."""
     window = ek.Window(TITLE, emoji=EMOJI, key=WINDOW_KEY)
     tool = DocsTool(window)
     window.docs_tool = tool

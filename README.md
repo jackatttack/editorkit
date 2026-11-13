@@ -22,7 +22,7 @@ The installer:
 
 - puts three packages in `site-packages-3`: `editorkit` (the library),
   `editorkit_toolbox` (the app) and `codesense` (the code analysis behind
-  Lens),
+  Explain),
 - makes `Documents/Toolbox/` with the Toolbox launcher, the examples and
   the lessons,
 - adds **Toolbox** to the editor's wrench menu.
@@ -30,8 +30,7 @@ The installer:
 ## Use it: Toolbox for Pythonista
 
 Tap the wrench, then **Toolbox**. The hub opens over your code with Learn,
-Files, Find, Scissors, Script, Snippets, Console, Quick, Lens, Docs and
-Explain. ℹ️ About on the hub says what everything is.
+Files, Find, Scissors, Script, Snippets, Console, Quick, Docs and Explain. ℹ️ About on the hub says what everything is.
 
 Snippets comes with a library of over a hundred: Pythonista's own modules,
 editorkit, everyday Python, web and data, maths and plots, and whole-file
