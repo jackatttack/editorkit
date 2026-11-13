@@ -7,9 +7,17 @@ still to be built; its tile then shows as 'soon'). A group is a tool with
 'group': [tools] instead of open: its card opens the group's own page in
 the hub (Games). every_tool() lists them all, groups opened out.
 """
+import importlib
 import importlib.util
+import json
+import os
+import sys
+import traceback
 
 from . import find
+
+# Games other projects install for Toolbox: one JSON file each, here.
+GAMES_FOLDER = os.path.join(os.path.expanduser('~/Documents'), 'Toolbox', 'games')
 
 
 def shipped(module):
@@ -34,6 +42,11 @@ def open_lens():
 def open_docs():
     from . import docs
     return docs.open_docs()
+
+
+def open_explain():
+    from . import explain
+    return explain.open_explain()
 
 
 def open_snippets():
@@ -111,17 +124,59 @@ def maths_games_tools():
         return []
 
 
-GAMES = [
-    {'name': 'Snake', 'emoji': '🐍', 'what': 'a demo over your code',
-     'home': 'over the code', 'open': open_snake,
-     'about': 'A demo: Snake played over your own code. The pad sits in the '
-              'keyboard\'s place (⌨ brings it back); the game pauses while it '
-              'is away. The edges wrap; do not bite yourself.'},
-]
+def installed_game_tool(spec):
+    """One installed game as a tool. spec: name, folder (put on sys.path),
+    module and function (called with args); emoji, what and about optional."""
+    folder, module_name = spec['folder'], spec['module']
+    function_name = spec.get('function', 'open_game')
+    arguments = list(spec.get('args', []))
+
+    def open_it():
+        if not os.path.isdir(folder):
+            raise RuntimeError('%s is not installed at %s' % (spec['name'], folder))
+        if folder not in sys.path:
+            sys.path.insert(0, folder)
+        root = module_name.split('.')[0]
+        for loaded in [name for name in sys.modules if name.split('.')[0] == root]:
+            del sys.modules[loaded]              # fresh each open: updates show at once
+        return getattr(importlib.import_module(module_name), function_name)(*arguments)
+
+    return {'name': spec['name'], 'emoji': spec.get('emoji', '🎮'),
+            'what': spec.get('what', 'game'), 'home': 'over the code', 'open': open_it,
+            'about': spec.get('about', '')}
+
+
+def installed_games():
+    """Games installed for Toolbox by other projects: every JSON file in
+    GAMES_FOLDER (Documents/Toolbox/games). Maths Games' installer writes
+    one for each web game. [] when there are none."""
+    try:
+        names = sorted(os.listdir(GAMES_FOLDER))
+    except OSError:
+        return []
+    found = []
+    for name in names:
+        if not name.endswith('.json'):
+            continue
+        try:
+            with open(os.path.join(GAMES_FOLDER, name), encoding='utf-8') as handle:
+                found.append(installed_game_tool(json.load(handle)))
+        except Exception:
+            traceback.print_exc()
+    return found
+
+
+SNAKE = {'name': 'Snake', 'emoji': '🐍', 'what': 'a demo over your code',
+         'home': 'over the code', 'open': open_snake,
+         'about': 'A demo: Snake played over your own code. The pad sits in the '
+                  'keyboard\'s place (⌨ brings it back); the game pauses while it '
+                  'is away. The edges wrap; do not bite yourself.'}
+GAMES = [SNAKE] if shipped('snake') else []
 if shipped('mathsgames_source'):
     from . import mathsgames_source
     GAMES.extend(maths_games_tools())
     GAMES.extend(mathsgames_source.web_port_tools())
+GAMES.extend(installed_games())
 
 
 
@@ -189,13 +244,22 @@ TOOLS = [
               'Type a name (view, add_subview, os.path) and tap a result to open '
               'its page at that entry; links inside pages work. ☰ goes back to the '
               'results. Pages come out of the app\'s docs as you open them.'},
+    {'name': 'Explain', 'emoji': '❓', 'what': 'what is this?',
+     'home': 'over the code', 'open': open_explain,
+     'about': 'Put the cursor on a name, or select some code: Explain says what it is, '
+              'as cards. A Python object shows its signature, docs and members (tap one '
+              'to go into it, ◀ to come back) with Insert and Insert call; your own names '
+              'show where this file defines and uses them (tap to jump); inside a call, '
+              'tap a parameter to insert name=. Select a class to see its methods. Type '
+              'a name in the field to explain that instead.'},
 ]
 
 # Tools a copy of the app may leave out, by the module each one needs. The
 # public release leaves these out, and their cards go with them.
-OPTIONAL_TOOLS = {'Calc': 'calc', 'Games': 'snake'}
+OPTIONAL_TOOLS = {'Calc': 'calc', 'Explain': 'explain'}
 TOOLS = [tool for tool in TOOLS
-         if tool['name'] not in OPTIONAL_TOOLS or shipped(OPTIONAL_TOOLS[tool['name']])]
+         if ('group' not in tool or tool['group'])          # Games: shown when there are any
+         and (tool['name'] not in OPTIONAL_TOOLS or shipped(OPTIONAL_TOOLS[tool['name']]))]
 
 
 def every_tool():

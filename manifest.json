@@ -2,7 +2,7 @@
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
  "version": "0.2.1",
- "staged": "2026-11-13 11:33",
+ "staged": "2026-11-13 15:47",
  "files": [
   [
    "LICENSE",
@@ -470,7 +470,7 @@
   ],
   [
    "editorkit_toolbox/tools.py",
-   8561
+   11408
   ],
   [
    "examples/annotate_and_highlight.py",
