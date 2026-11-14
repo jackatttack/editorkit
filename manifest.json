@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.5.3",
- "staged": "2026-11-14 20:00",
+ "version": "0.5.4",
+ "staged": "2026-11-14 20:12",
  "files": [
   [
    "LICENSE",
@@ -506,7 +506,7 @@
   ],
   [
    "editorkit_toolbox/scissors_pad.py",
-   16076
+   16064
   ],
   [
    "editorkit_toolbox/scissors_range.py",

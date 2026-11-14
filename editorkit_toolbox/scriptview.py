@@ -123,7 +123,7 @@ class ScriptTool:
         # During a tab switch there is a moment with no editor view; a top
         # bar shown then lands on the outgoing view and vanishes with it.
         # So the bar comes once the switch has settled.
-        ui.delay(open_scissors_bar_now, SCISSORS_AFTER_TAB_SECONDS)
+        ui.delay(open_scissors_pad_now, SCISSORS_AFTER_TAB_SECONDS)
 
     def show_range(self, lines, focus=None):
         """Tint lines=(first, last) as Scissors' range (None: no band), and
@@ -175,11 +175,11 @@ class ScriptTool:
 SCISSORS_AFTER_TAB_SECONDS = 0.4   # ✂️: wait this long after the tab switch before the bar
 
 
-def open_scissors_bar_now():
+def open_scissors_pad_now():
     """The Scissors bar over the (new) open tab; a failure prints, never vanishes."""
     try:
-        from . import scissors_bar
-        scissors_bar.open_scissors_bar()
+        from . import scissors_pad
+        scissors_pad.open_scissors_pad()
     except Exception:
         import traceback
         print('deck: the Scissors bar did not open:')

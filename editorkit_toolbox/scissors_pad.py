@@ -58,10 +58,9 @@ WORD_ARROWS = {'left': '◀', 'up': '▲', 'down': '▼', 'right': '▶'}
 LINE_ARROWS = {'left': '⇤', 'up': '⇧', 'down': '⇩', 'right': '⇥'}
 ROW_ONE = (('left', '◀'), ('up', '▲'), ('down', '▼'), ('right', '▶'),
            ('grow', '⊕'), ('shrink', '⊖'), ('reset', '⟲'))
-ROW_TWO = (('copy', '📋'), ('cut', '✂️'), ('paste', '📥'), ('run', '▶︎'), ('explain', '?'),
-           ('more', '⋯'))
-MORE_ROW = (('duplicate', '⧉'), ('comment', '#'), ('snippet', '🧩'), ('view', '📜'),
-            ('more', '↩'))
+ROW_TWO = (('copy', '📋'), ('cut', '✂️'), ('paste', '📥'), ('run', '▶︎'), ('snippet', '🧩'),
+           ('explain', '?'), ('more', '⋯'))
+MORE_ROW = (('duplicate', '⧉'), ('comment', '#'), ('view', '📜'), ('more', '↩'))
 REPEATS = ('left', 'up', 'down', 'right', 'grow', 'shrink')
 
 
