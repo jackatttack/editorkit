@@ -58,7 +58,7 @@ MISSING = 'Nothing here yet: run the Toolbox installer again to put the %s in Do
 
 ABOUT = '''🧰 Toolbox
 
-Tools that live inside Pythonista's editor: a hub to open them, and windows over your code for files, finding, moving lines, snippets, running code, explaining names and reading the docs.
+Tools that live inside Pythonista's editor: a hub to open them, and windows over your code for files, finding, moving lines, snippets, running code, explaining names, reading the docs and installing packages from PyPI.
 
 Toolbox is built on editorkit, a Python library for scripting Pythonista itself. Your own scripts can use it to open windows over the editor, put notes and highlights beside your code, add your own keys and toolbar buttons, read and change the open script, and work with tabs, files and themes.
 

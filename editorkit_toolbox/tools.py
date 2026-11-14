@@ -32,6 +32,11 @@ def open_learn():
     learn.open_learn()
 
 
+def open_packages():
+    from . import packages_tool
+    packages_tool.open_packages()
+
+
 def open_scissors():
     """The Scissors bar over the top of the code (the keyboard version is
     still a script window's ✂️ keys, until it is retired)."""
@@ -219,6 +224,12 @@ TOOLS = [
               'it in the text box, 🗑 twice to delete. Groups along the top; '
               '＋ Snippet starts from your selection. ${cursor}, ${date}, ${time} '
               'and ${clipboard} are filled in when typed.'},
+    {'name': 'Packages', 'emoji': '📦', 'what': 'install from PyPI',
+     'home': 'over the code', 'open': open_packages,
+     'about': 'Find, inspect, install and remove Python packages from PyPI. Inspect shows '
+              'every package it would install before anything changes; downloads are '
+              'checked and verified, and nothing runs setup.py. Toolbox only removes '
+              'what it installed. Pure-Python packages work best.'},
     {'name': 'Console', 'emoji': '📟', 'what': 'run and see output',
      'home': 'over the code', 'open': open_console,
      'about': 'Run the open script, or only the selected lines, and watch its '

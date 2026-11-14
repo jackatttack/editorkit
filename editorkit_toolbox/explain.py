@@ -542,6 +542,7 @@ class ExplainTool:
         self.typed_due = None
         self.index_key = None        # the code the symbol index was built from
         self.code_key = None         # the code the name chips were read from
+        self.held_key = None         # a name another tool asked for holds the page till the cursor moves
         self.code_found = ([], set(), set())
         self.index = None
         self.assistant = codesense.Assistant(codesense.Ledger())
@@ -599,22 +600,31 @@ class ExplainTool:
         self.next_check = now + WATCH_SECONDS
         self.watch()
 
+    def cursor_key(self, text):
+        """(key, start, end): what the cursor or selection is on, as watch
+        compares it. On no name the page lists the code on screen, so
+        scrolling counts."""
+        start, end = tuple(ek.selection() or (0, 0))
+        if start != end:
+            return ('selection', start, end), start, end
+        name, span = subjects.dotted_at(text, start)
+        line = subjects.line_of(text, start)
+        shown = None if name else self.screen_lines(line)
+        return ('cursor', line, span if name else None, shown), start, end
+
     def watch(self):
         """Explain again when the selection changes, or the cursor moves onto
-        another name or line, but not while typing (the text keeps changing)."""
+        another name or line, but not while typing (the text keeps changing).
+        A name another tool asked for (hold_name) stays until the cursor moves."""
         text = ek.text() or ''
         if len(text) != self.text_length:
             self.text_length = len(text)
             return
-        start, end = tuple(ek.selection() or (0, 0))
-        if start != end:
-            key = ('selection', start, end)
-        else:
-            name, span = subjects.dotted_at(text, start)
-            line = subjects.line_of(text, start)
-            # On no name the page lists the code on screen, so scrolling counts.
-            shown = None if name else self.screen_lines(line)
-            key = ('cursor', line, span if name else None, shown)
+        key, start, end = self.cursor_key(text)
+        if self.held_key is not None:
+            if key == self.held_key:
+                return
+            self.held_key = None
         if key == self.seen:
             return
         self.seen = key
@@ -670,6 +680,13 @@ class ExplainTool:
         if not push:
             self.subject = None
         self.go_to(subjects.Subject('name', dotted, -1, -1, 0, dotted, None, {}))
+
+    def hold_name(self, dotted):
+        """Explain dotted for another tool (Packages' module chips) and keep it
+        showing until the cursor or selection moves, rather than following
+        the cursor straight away."""
+        self.held_key = self.cursor_key(ek.text() or '')[0]
+        self.explain_name(dotted, push=False)
 
     def explain_page(self, page_path, anchor, title, focus=None):
         """Part of a docs page shown here (a link). With focus: the whole

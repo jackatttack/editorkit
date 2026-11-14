@@ -30,7 +30,9 @@ The installer:
 ## Use it: Toolbox for Pythonista
 
 Tap the wrench, then **Toolbox**. The hub opens over your code with Learn,
-Files, Find, Scissors, Script, Snippets, Console, Quick, Docs and Explain. ℹ️ About on the hub says what everything is.
+Files, Find, Scissors, Script, Snippets, Packages, Console, Quick, Docs and
+Explain. 📦 Packages installs pure-Python packages from PyPI, showing every
+dependency before anything changes (its engine comes from Pipista). ℹ️ About on the hub says what everything is.
 
 Snippets comes with a library of over a hundred: Pythonista's own modules,
 editorkit, everyday Python, web and data, maths and plots, and whole-file
