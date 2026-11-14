@@ -13,7 +13,7 @@ Tier 2  Assistant: jedi completions, signatures and definitions, and
         pyflakes lint, on one background thread with versioned answers
 Timing  Ledger: every step records its last, worst, mean and median time
 
-See projects/editorkit/docs/DESIGN.txt, sections 5, 7 and 8.
+
 """
 from .assist import Answer, Assistant
 from .context import KINDS, Context, context_at

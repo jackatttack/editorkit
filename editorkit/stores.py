@@ -1,4 +1,4 @@
-"""Stores: small named state that survives quitting (ROADMAP K).
+"""Stores: small named state that survives quitting.
 
     deck = ek.store('deck')            # Documents/.editorkit/store/deck.json
     deck['recent'] = ['calc', 'files']

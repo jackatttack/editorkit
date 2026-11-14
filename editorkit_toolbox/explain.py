@@ -48,6 +48,7 @@ from . import docs, docs_index
 from . import explain_subject as subjects
 from . import detect
 from .docs import card_kit, layouts, web_tiles   # the card kit, layouts and tiles Docs uses
+from . import line_facts
 from .lookup import describe, reachable, short_signature
 
 
@@ -56,7 +57,7 @@ from .lookup import describe, reachable, short_signature
 TITLE = 'Explain'
 EMOJI = '❓'
 WINDOW_KEY = 'deck-explain'
-FIELD_HINT = 'Explain a name, or follow the cursor'
+FIELD_HINT = 'A name to explain, or words to search the docs'
 WATCH_SECONDS = 0.3          # how often to look at the cursor and the selection
 TYPING_PAUSE = 0.4           # a typed name is explained once typing pauses this long
 CARD_WIDTH = 200
@@ -88,6 +89,9 @@ KIND_COLOURS = {'class': '#8E6CEF', 'function': '#27AE60', 'module': '#2D9CDB',
                 'file': '#56CCF2', 'call': '#F2C94C', 'selection': '#BB6BD9',
                 'other': '#8A8A96'}
 JEDI_KINDS = ('name', 'attribute', 'call', 'def', 'import')
+LINE_KINDS = ('nothing', 'string', 'comment')   # on no name: say what the line is
+EXPLAIN_PAGE = 'Explain'      # the tabs: the field explains a name here...
+DOCS_PAGE = 'Docs'            # ...and searches Pythonista's docs here
 CSS = '''
 .xp-doc { white-space: pre-wrap; font-size: 13px; line-height: 1.35; margin: 0; }
 .xp-swatch { height: 48px; border-radius: 10px; border: 1px solid var(--rule); margin-bottom: 6px; }
@@ -220,11 +224,34 @@ def last_part(subject):
     return subject.dotted.rsplit('.', 1)[-1] if subject.dotted else ''
 
 
+def line_header(tool, subject, page):
+    """The cursor's line when it is on no name: what the line is, the
+    statement it belongs to, its code with ⧉ Copy or its docstring as text,
+    and one plain sentence (line_facts reads it; nothing runs)."""
+    facts = line_facts.describe(tool.text, subject.line)
+    if facts.first == facts.last:
+        span = 'line %d' % facts.first
+    else:
+        span = 'lines %d–%d' % (facts.first, facts.last)
+    bits = [facts.kind, span, ' › '.join(tool.scope_names(subject.line))]
+    blocks = [prose.heading(facts.title, 1), prose.meta(' · '.join(bit for bit in bits if bit))]
+    if facts.code:
+        blocks.append(prose.code(facts.code))
+    if facts.sentence:
+        blocks.append(prose.text(facts.sentence))
+    if facts.doc:
+        blocks.append(prose.text(facts.doc[:DOC_CHARACTERS]))
+    page.prose(*blocks)
+
+
 # --- Facets -----------------------------------------------------------------
 
 def header(tool, subject, page):
     """The name as a heading, its kind and where it is, its signature (the
     docs' own, else Python's); ⤵ to insert; Load, did you mean."""
+    if subject.kind in LINE_KINDS and not subject.dotted and subject.line and tool.text:
+        line_header(tool, subject, page)
+        return
     thing = tool.thing
     if subject.kind == 'lines':
         title = '%d lines selected' % (subject.text.strip('\n').count('\n') + 1)
@@ -516,7 +543,15 @@ class ExplainTool:
         self.cards = web_tiles.Cards(window, on_pick=self.picked, zoom_key='explain',
                                      extra_css=docs.CSS + CSS)
         self.view = layouts.query_list(window, FIELD_HINT, on_change=self.typed,
-                                       body=self.cards, compact_in_dock=False)
+                                       body=self.cards, compact_in_dock=False,
+                                       page=EXPLAIN_PAGE)
+        # 📖 Docs is a second tab sharing the field; each tab keeps its own text.
+        self.docs = docs.DocsTool(window, field_view=self.view)
+        window.add_page(DOCS_PAGE, self.docs.cards)
+        self.shown_page = EXPLAIN_PAGE
+        self.page_text = {EXPLAIN_PAGE: '', DOCS_PAGE: ''}
+        self.switching = False       # the field is being refilled for a tab: not typing
+        window.on('page', self.page_changed)
         self.subject = None
         self.thing = None            # the subject's Python object, when reachable
         self.entry = None            # its docs entry, when there is one
@@ -547,7 +582,29 @@ class ExplainTool:
     # --- Looking ------------------------------------------------------------
 
     def typed(self, field, text):
+        """The field is shared: on the Docs tab it searches the docs."""
+        if self.switching:
+            return
+        if self.window.page == DOCS_PAGE:
+            self.docs.typed(field, text)
+            return
         self.typed_due = time.time() + TYPING_PAUSE
+
+    def page_changed(self, *ignored):
+        """A tab was chosen: put back that tab's text in the field, and look
+        again on returning to Explain."""
+        page = self.window.page
+        if page == self.shown_page:
+            return
+        self.page_text[self.shown_page] = self.view.field.value()
+        self.shown_page = page
+        self.switching = True
+        try:
+            self.view.field.set_value(self.page_text.get(page, ''))
+        finally:
+            self.switching = False
+        if page == EXPLAIN_PAGE:
+            self.look_again()
 
     def look_again(self):
         self.seen = None
@@ -579,6 +636,8 @@ class ExplainTool:
     def tick(self, *ignored):
         now = time.time()
         self.take_answers()
+        if self.window.page == DOCS_PAGE:
+            return                   # Explain is behind the Docs tab: nothing to follow
         if self.typed_due is not None and now >= self.typed_due:
             self.typed_due = None
             term = self.view.field.value().strip()
@@ -899,12 +958,14 @@ class ExplainTool:
         self.assistant.stop()
 
 
-def open_explain():
-    """Open Explain over the code (or bring it back)."""
+def open_explain(page=None):
+    """Open Explain over the code (or bring it back); page=DOCS_PAGE opens it
+    on its 📖 Docs tab."""
     window = ek.Window(TITLE, emoji=EMOJI, key=WINDOW_KEY)
     tool = ExplainTool(window)
     window.explain_tool = tool
     window.on('open', lambda _window: tool.look_again())
     window.on('close', lambda _window: tool.stop())
-    window.show()
+    window.show(page=page)
+    tool.page_changed()
     return tool

@@ -186,20 +186,33 @@ def render_code(text):
 
 class DocsTool:
 
-    def __init__(self, window):
+    def __init__(self, window, field_view=None):
+        """field_view: another tool's query_list whose field this shares (Explain's
+        Docs tab); the owner adds self.cards as a page and routes typing here."""
         self.window = window
+        self.shared = field_view is not None
+        self.query = ''              # what was typed for the docs (the field may be shared)
         self.search_due = None
         self.loaded = False
         self.last_results = None     # the results page, for ◀ Results
         self.cards = web_tiles.Cards(window, on_pick=self.picked, zoom=START_ZOOM,
                                      zoom_key='docs', extra_css=CSS)
-        self.view = layouts.query_list(window, 'Search the docs', on_change=self.typed,
-                                       body=self.cards, compact_in_dock=False)
+        if self.shared:
+            self.view = field_view
+        else:
+            self.view = layouts.query_list(window, 'Search the docs', on_change=self.typed,
+                                           body=self.cards, compact_in_dock=False)
         window.every(self.tick)
         self.cards.say('Loading the docs…')
 
     def typed(self, field, text):
+        self.query = text
         self.search_due = time.time() + TYPING_PAUSE
+
+    def set_title(self, title):
+        """The window's title, when the window is Docs' own."""
+        if not self.shared:
+            self.window.set_title(title)
 
     def look_up(self, names, term):
         """Open at the first of names the docs know (a tool asking for a name), with a
@@ -214,13 +227,14 @@ class DocsTool:
         self.loaded = True
         found = docs_index.named(everything, list(names))
         if term:
+            self.query = term
             self.view.field.set_value(term)
             results = docs_index.search(everything, term)
             label = '%d for “%s”' % (len(results), term) if results else 'Nothing for “%s”' % term
             self.last_results = results_page(label, results)
         if found:
             self.cards.show(detail_page(found[0]))
-            self.window.set_title(found[0].name.rsplit('.', 1)[-1])
+            self.set_title(found[0].name.rsplit('.', 1)[-1])
         elif self.last_results is not None:
             self.cards.show(self.last_results)
         self.search_due = None       # the field was set by us: no search over the top
@@ -237,7 +251,7 @@ class DocsTool:
             self.search_due = time.time()
         if self.search_due is not None and time.time() >= self.search_due:
             self.search_due = None
-            self.show_found(self.view.field.value().strip())
+            self.show_found(self.query.strip())
 
     def show_found(self, term):
         if term:
@@ -248,7 +262,7 @@ class DocsTool:
             label = "Pythonista's modules"
         self.last_results = results_page(label, found, title=None if term else label)
         self.cards.show(self.last_results)
-        self.window.set_title(TITLE)
+        self.set_title(TITLE)
 
     def picked(self, item):
         """A card (an entry: its page of cards), ◀ Results, or Insert. A
@@ -257,10 +271,10 @@ class DocsTool:
             if isinstance(item, docs_index.Entry):
                 self.view.field.unfocus()
                 self.cards.show(detail_page(item))
-                self.window.set_title(item.name.rsplit('.', 1)[-1])
+                self.set_title(item.name.rsplit('.', 1)[-1])
             elif item[0] == 'back' and self.last_results is not None:
                 self.cards.show(self.last_results)
-                self.window.set_title(TITLE)
+                self.set_title(TITLE)
             elif item[0] == 'insert':
                 ek.insert(item[1])
         except Exception as problem:
@@ -269,12 +283,11 @@ class DocsTool:
 
 
 def open_docs(names=(), term=''):
-    """Open Docs over the code (or bring it back). names: dotted names to
-    open at, the first the docs know (a tool asking for a name); term: a search behind it."""
-    window = ek.Window(TITLE, emoji=EMOJI, key=WINDOW_KEY)
-    tool = DocsTool(window)
-    window.docs_tool = tool
-    window.show()
+    """Open Explain on its 📖 Docs tab (or bring it back). names: dotted names
+    to open at, the first the docs know (a tool asking for a name); term: a
+    search behind it."""
+    from . import explain
+    tool = explain.open_explain(page=explain.DOCS_PAGE)
     if names or term:
-        tool.look_up(names, term)
-    return tool
+        tool.docs.look_up(names, term)
+    return tool.docs

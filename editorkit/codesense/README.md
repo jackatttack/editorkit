@@ -39,4 +39,3 @@ Positions are UTF-16 units, the same as Pythonista's editor.
 - `timing.py`: the ledger
 - `tests/smoke_codesense.py`: headless checks and budgets (Forge RUN)
 
-Design: `projects/editorkit/docs/DESIGN.txt`.

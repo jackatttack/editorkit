@@ -28,9 +28,8 @@ def dock_window():
     dismiss_keyboard=False keeps the pad up while you scroll it.
 
     Try it, then tap into the code and tap some words. – folds the pad."""
-    window = ek.Window('Words', emoji='🔤', key='lesson-words', home='dock', owner=lesson.window)
-    board = tiles.Cards(window, on_pick=ek.insert, zoom_key='lesson-words',
-                        dismiss_keyboard=False)
+    window = lesson.new_window('Words', emoji='🔤', key='lesson-words', home='dock')
+    board = tiles.Cards(window, on_pick=ek.insert, dismiss_keyboard=False)
     window.add_page('Words', board)
     board.show(word_page())
     window.show()

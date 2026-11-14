@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.5.0",
- "staged": "2026-11-14 15:08",
+ "version": "0.5.1",
+ "staged": "2026-11-14 17:44",
  "files": [
   [
    "LICENSE",
@@ -10,7 +10,7 @@
   ],
   [
    "README.md",
-   7414
+   7421
   ],
   [
    "editorkit/__init__.py",
@@ -38,11 +38,11 @@
   ],
   [
    "editorkit/codesense/README.md",
-   1563
+   1518
   ],
   [
    "editorkit/codesense/__init__.py",
-   1124
+   1064
   ],
   [
    "editorkit/codesense/assist.py",
@@ -118,7 +118,7 @@
   ],
   [
    "editorkit/layouts/query_list.py",
-   8393
+   8381
   ],
   [
    "editorkit/lessons.py",
@@ -206,11 +206,11 @@
   ],
   [
    "editorkit/sources.py",
-   1975
+   1963
   ],
   [
    "editorkit/stores.py",
-   4906
+   4894
   ],
   [
    "editorkit/tabpull.py",
@@ -254,11 +254,11 @@
   ],
   [
    "editorkit/web/cards.py",
-   11607
+   11606
   ],
   [
    "editorkit/web/codeview.py",
-   27269
+   27124
   ],
   [
    "editorkit/web/prose.py",
@@ -290,7 +290,7 @@
   ],
   [
    "editorkit/web/tiles/code.py",
-   16447
+   16435
   ],
   [
    "editorkit/web/tiles/feed.py",
@@ -346,7 +346,7 @@
   ],
   [
    "editorkit/windows/owndrags.py",
-   3961
+   3897
   ],
   [
    "editorkit/windows/places.py",
@@ -378,7 +378,7 @@
   ],
   [
    "editorkit/windows/window.py",
-   36156
+   36095
   ],
   [
    "editorkit/wrench.py",
@@ -402,7 +402,7 @@
   ],
   [
    "editorkit_toolbox/docs.py",
-   10998
+   11554
   ],
   [
    "editorkit_toolbox/docs_index.py",
@@ -410,7 +410,7 @@
   ],
   [
    "editorkit_toolbox/explain.py",
-   39164
+   41946
   ],
   [
    "editorkit_toolbox/explain_subject.py",
@@ -439,6 +439,10 @@
   [
    "editorkit_toolbox/learn.py",
    13634
+  ],
+  [
+   "editorkit_toolbox/line_facts.py",
+   7970
   ],
   [
    "editorkit_toolbox/lineops.py",
@@ -526,7 +530,7 @@
   ],
   [
    "editorkit_toolbox/tools.py",
-   11955
+   11638
   ],
   [
    "examples/editor_annotate_and_highlight.py",
@@ -650,7 +654,7 @@
   ],
   [
    "lessons/07_the_keyboards_place.py",
-   2983
+   2921
   ],
   [
    "lessons/08_the_feed.py",

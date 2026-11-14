@@ -58,11 +58,6 @@ def open_scissors():
     return scissors_bar.open_scissors_bar()
 
 
-def open_docs():
-    from . import docs
-    return docs.open_docs()
-
-
 def open_explain():
     from . import explain
     return explain.open_explain()
@@ -162,20 +157,16 @@ BUILT_IN = [
      'home': 'over the code', 'open': open_quick,
      'about': 'One-tap actions on the open script: copy, run, duplicate, '
               'constants, clipboard and more. ? in its header explains each.'},
-    {'name': 'Docs', 'emoji': '📖', 'what': "Pythonista's documentation",
-     'home': 'over the code', 'open': open_docs,
-     'about': 'Pythonista\'s own documentation, searched and read over the code. '
-              'Type a name (view, add_subview, os.path) and tap a result to open '
-              'its page at that entry; links inside pages work. ☰ goes back to the '
-              'results. Pages come out of the app\'s docs as you open them.'},
-    {'name': 'Explain', 'emoji': '❓', 'what': 'what is this?',
+    {'name': 'Explain', 'emoji': '❓', 'what': 'what is this? and the docs',
      'home': 'over the code', 'open': open_explain,
      'about': 'Put the cursor on a name, or select some code: Explain says what it is, '
               'as cards. A Python object shows its signature, docs and members (tap one '
               'to go into it, ◀ to come back) with Insert and Insert call; your own names '
               'show where this file defines and uses them (tap to jump); inside a call, '
               'tap a parameter to insert name=. Select a class to see its methods. Type '
-              'a name in the field to explain that instead.'},
+              'a name in the field to explain that instead. On no name, it says what '
+              'the line is. Its 📖 Docs tab searches and reads Pythonista\'s own '
+              'documentation (view, add_subview, os.path); the field searches there.'},
 ]
 
 

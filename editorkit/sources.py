@@ -1,4 +1,4 @@
-"""Sources: what a query_list searches (ROADMAP F).
+"""Sources: what a query_list searches.
 
 A source is any object with:
 

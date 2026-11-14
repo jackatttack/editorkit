@@ -62,8 +62,7 @@ Tap the wrench, then **Toolbox**. The 🏡 hub opens over your code.
 | 📦 | Packages | Install pure-Python packages from PyPI. |
 | 📟 | Console | Run the script, or just the selection, and see its output. |
 | ⚡ | Quick | One-tap actions on the open script. |
-| 📖 | Docs | Pythonista's own documentation, searched. |
-| ❓ | Explain | What is the name under the cursor? Signature, docs, uses. |
+| ❓ | Explain | What is the name or line under the cursor? Signature, docs, uses. Its 📖 Docs tab searches Pythonista's own documentation. |
 
 **Searching.** The hub's Find is the one search across files: it finds
 file names and code under a folder, in sections. Find in script is the

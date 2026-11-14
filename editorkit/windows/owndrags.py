@@ -17,8 +17,7 @@ Safe to call again and again (from a page's tick): the work is redone only
 when the views above have changed, as they do when a window moves between
 the code, the console and the dock.
 
-Found porting Maths Games into the deck (2026-11-11): Double Up could not
-be swiped. Probe: tools/probe_game_touches.py.
+Found when a swipe game in a window could not be swiped.
 """
 import builtins
 

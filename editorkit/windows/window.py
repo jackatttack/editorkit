@@ -6,8 +6,7 @@ Places: 'hidden' (made, never shown), 'pin', 'panel' (over the code),
 'dock' (the keyboard's place), 'console', 'tray' (folded into the tray home),
 'tab' (resting in Pythonista's tab row as a stand-in tab), 'closed'.
 
-Every move between places uses the patterns proven in Coil's surface
-(projects/editorkit/coil/surface.py, 2026-11-08): grow and shrink, snapshot
+Every move between places uses patterns proven on device: grow and shrink, snapshot
 hand-offs, holds noticed by the clock, side swipes off while dragging.
 Motion is ui.animate on frame and alpha with no completion; later steps are
 booked on the timeline; never ui.delay (pythonista-ui-stability guide).

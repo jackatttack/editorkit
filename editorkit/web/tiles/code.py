@@ -156,7 +156,7 @@ class Code(Tile):
             self.shown_html.append(html)
             self.run('addResults(%s)' % json.dumps(html))
 
-    # --- Sections with items (ROADMAP G) ------------------------------------
+    # --- Sections with items ------------------------------------
 
     def set_section(self, section):
         """Show one (html, items) section, replacing everything."""

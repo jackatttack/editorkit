@@ -100,7 +100,7 @@ def text(words):
 
 
 def face(emoji, caption='', dim=False):
-    """A tool card's body: a big emoji beside a short caption (the deck's
+    """A tool card's body: a big emoji beside a short caption (Toolbox's
     hub, Quick). dim greys it (a tool not ready yet)."""
     return ('<div class="ek-face%s"><span class="ek-face-emoji">%s</span>'
             '<span class="ek-face-caption">%s</span></div>'

@@ -61,7 +61,7 @@ class QueryList:
         self.last_place = None
         self.shown_before = {}            # tile -> shown, while folded
 
-        # Sources (ROADMAP F): the field asks each one as you type; the
+        # Sources: the field asks each one as you type; the
         # tool's own on_change still runs after.
         self.sources = list(sources or ())
         self.user_on_change = on_change

@@ -1,9 +1,7 @@
 """Code as HTML: syntax colours, numbered rows, marked matches.
 
 Pure Python (no ui, no editor), so tests/smoke_codeview.py checks it
-headless. The look is ported from the console deck's viewer
-(projects/consolekit/editor_deck/find_html.py), itself from Forge Landing:
-the same syntax colours and line-numbered rows, and its device lessons (no
+headless: syntax colours and line-numbered rows, built on device lessons (no
 position: sticky; context greyed by colour, not opacity). The whole page
 scrolls sideways as one: blocks have no scroller of their own, and the
 results grow to the widest line so every block is the same width.
@@ -234,7 +232,7 @@ def preview_html(label, text, python=True, limit=PREVIEW_LINES, file_index=0):
     return ''.join(out)
 
 
-# --- Sections with items (ROADMAP G) ----------------------------------------
+# --- Sections with items ----------------------------------------
 #
 # A section is (html, items): HTML for a tiles.Code page, and items,
 # {go id: any Python object}. Every tappable row or match carries a go id
