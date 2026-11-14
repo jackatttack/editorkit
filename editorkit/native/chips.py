@@ -11,12 +11,12 @@ that would run past the edge is cut to fit.
 """
 import ui
 
-from .base import GAP, PADDING, ROW_HEIGHT, Tile, make_button
+from .base import BUTTON_FONT, GAP, PADDING, ROW_HEIGHT, Tile, make_button, paint_button
 
 
 # --- Settings -------------------------------------------------------------
 
-CHIP_FONT = ('<system>', 15)     # used to measure a chip's words
+CHIP_FONT = BUTTON_FONT          # used to measure a chip's words
 CHIP_PADDING = 14                # each side of the words
 MIN_WIDTH = 44
 
@@ -50,8 +50,7 @@ class Chips(Tile):
         self.layout()
 
     def paint(self, button, on):
-        button.background_color = self.palette.accent if on else self.palette.background
-        button.tint_color = self.palette.on_accent if on else self.palette.text
+        paint_button(button, self.palette, on)
 
     def layout(self):
         top = (self.height - ROW_HEIGHT) / 2.0

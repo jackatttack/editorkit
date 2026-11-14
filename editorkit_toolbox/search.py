@@ -31,7 +31,7 @@ WINDOW_ICON = '📜'           # on a hit's row: open that file in a script wind
 # a block as wide as the window instead.
 RESULTS_CSS = (cards.CSS.replace('#results { width: auto; min-width: 0; }', '')
                + filecards.CSS + """
-.fx-names { width: calc(100vw - 20px); }
+.fx-names { width: auto; }
 """)
 
 
@@ -117,11 +117,8 @@ def section_for(section, label, path, text, marks, context, python):
     def mark_item(number, mark):
         return Hit(path, number, mark[0], mark[1])
 
-    def view_item(number, line_marks):
-        return ViewHit(Hit(path, number, line_marks[0][0], line_marks[0][1]))
     return codeview.file_section(section, label, text, marks, context, python=python,
-                                 line_item=line_item, mark_item=mark_item,
-                                 row_button=(WINDOW_ICON, view_item))
+                                 line_item=line_item, mark_item=mark_item)
 
 
 # --- The scan ---------------------------------------------------------------------

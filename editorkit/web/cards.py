@@ -193,36 +193,35 @@ class Page:
 
 CSS = """
 #results { width: auto; min-width: 0; }
-.ek-heading { font: 600 12px -apple-system, sans-serif; letter-spacing: 0.06em;
-    text-transform: uppercase; opacity: 0.6; padding: 10px 2px 4px 2px; }
+.ek-heading { font: 600 17px/1.25 -apple-system, sans-serif; padding: 14px 2px 6px 2px; }
 .ek-note { font: 13px -apple-system, sans-serif; opacity: 0.6; padding: 6px 2px; }
 .ek-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 2px 10px 2px; }
-.ek-chip { padding: 5px 12px; border-radius: 14px;
-    border: 2px solid var(--c, var(--line));
-    font: 14px -apple-system, sans-serif; cursor: pointer; }
+.ek-chip { padding: 4px 12px; border-radius: 999px;
+    border: 1.5px solid var(--c, var(--line));
+    font: 14px/1.4 -apple-system, sans-serif; cursor: pointer; }
 .ek-chip.on { background: var(--c, var(--line)); color: #111111; font-weight: 600; }
 .ek-chip small { opacity: 0.7; margin-left: 3px; }
 .ek-chip.dashed { border-style: dashed; border-color: var(--line); }
 .ek-grid { display: grid; gap: 8px; padding: 0 2px 12px 2px; }
-.ek-card { background: var(--wash); border-radius: 10px;
-    border-left: 4px solid var(--c, var(--line)); padding: 8px;
+.ek-card { background: var(--wash); border-radius: 12px; border: 0.5px solid var(--rule);
+    box-shadow: inset 3px 0 0 var(--c, transparent); padding: 10px 12px 10px 14px;
     cursor: pointer; overflow: hidden; min-width: 0; }
-.ek-title { display: flex; align-items: center; gap: 4px;
-    font: bold 14px -apple-system, sans-serif; margin-bottom: 6px; }
-.ek-title span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
-    white-space: nowrap; }
-.ek-act { font-weight: normal; padding: 2px 6px; border-radius: 6px;
+.ek-title { display: flex; align-items: flex-start; gap: 6px;
+    font: 600 15px/1.3 -apple-system, sans-serif; margin-bottom: 6px; }
+.ek-title span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.ek-act { font: 13px/1.3 -apple-system, sans-serif; padding: 3px 9px; border-radius: 8px;
     background: var(--wash-strong); cursor: pointer; }
 .ek-act.armed { background: #FF5A5F; color: #111111; }
-.ek-code { font: 12px Menlo, monospace; white-space: pre; overflow: hidden; line-height: 1.4em; }
-.ek-text { font: 13px -apple-system, sans-serif; line-height: 1.35em; opacity: 0.85; }
+.ek-code { font: 12.5px/1.45 Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere;
+    background: var(--card); border-radius: 8px; padding: 6px 9px; margin: 2px 0 6px; }
+.ek-text { font: 14px/1.45 -apple-system, sans-serif; opacity: 0.85; }
 .ek-field { background: rgba(255, 200, 80, 0.28); border-radius: 4px; padding: 0 2px; }
 .ek-more { opacity: 0.55; font-size: 11px; }
-.ek-buttons { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 2px 8px 2px; }
-.ek-group { display: flex; gap: 6px; flex: 1 0 auto; }
-.ek-button { flex: 1 0 auto; min-width: 44px; text-align: center; padding: 9px 10px;
-    border-radius: 9px; background: var(--wash-strong); white-space: nowrap;
-    font: 15px -apple-system, sans-serif; cursor: pointer; }
+.ek-buttons { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 2px 10px 2px; }
+.ek-group { display: flex; gap: 6px; flex: 0 0 auto; }
+.ek-button { flex: 0 0 auto; min-width: 36px; text-align: center; padding: 7px 14px;
+    border-radius: 10px; background: var(--wash-strong); border: 0.5px solid var(--rule);
+    white-space: nowrap; font: 500 14px/1.3 -apple-system, sans-serif; cursor: pointer; }
 .ek-button.go { background: var(--accent, #ff2d55); color: #111111; font-weight: 600; }
 .ek-button.warn { color: #FF9F43; }
 .ek-button.field { background: var(--card); box-shadow: inset 0 0 0 1px var(--rule);
@@ -231,11 +230,11 @@ CSS = """
     cursor: default; padding-left: 2px; padding-right: 2px; }
 .ek-button.armed { background: #FF5A5F; color: #111111; }
 .ek-card.dashed { display: flex; align-items: center; justify-content: center; min-height: 64px;
-    background: none; border: 2px dashed var(--line);
+    background: none; border: 1.5px dashed var(--line);
     font: 15px -apple-system, sans-serif; }
 .ek-face { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.ek-face-emoji { font-size: 30px; line-height: 36px; }
-.ek-face-caption { font: 12px -apple-system, sans-serif; opacity: 0.65; min-width: 0; }
+.ek-face-emoji { font-size: 24px; line-height: 28px; }
+.ek-face-caption { font: 13px/1.3 -apple-system, sans-serif; opacity: 0.65; min-width: 0; }
 .ek-dim { opacity: 0.45; }
 """
 

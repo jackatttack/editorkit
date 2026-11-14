@@ -299,7 +299,7 @@ FIND_CSS = search.RESULTS_CSS + """
     font: 600 13px -apple-system, sans-serif; color: var(--muted); }
 .hf-arrow::after { content: "▾"; }
 .hf-count { font-weight: 400; opacity: 0.75; }
-.hf-grid { width: calc(100vw - 20px); }
+.hf-grid { width: auto; }
 """ + ''.join(
     'body.hf-hide-%s .hf-%s { display: none; }\n'
     'body.hf-hide-%s .hf-head-%s .hf-arrow::after { content: "▸"; }\n'
@@ -354,8 +354,10 @@ class Hub:
         # Find: one web page of sections (see "Find: one search for everything").
         # fresh_on_grow: a page whose width follows the window draws clipped after
         # a resize (the iPad showed the tool grid cut off at two thirds).
-        self.results = web_tiles.Code(self.window, on_pick=self.picked, extra_css=FIND_CSS,
-                                      fresh_on_grow=True)
+        # A Cards tile for its pinch (page zoom, remembered as 'find'): code
+        # in the results zooms the way the docs' code does.
+        self.results = web_tiles.Cards(self.window, on_pick=self.picked, extra_css=FIND_CSS,
+                                       zoom_key='find')
         # Where Find looks: a folder chip (a sheet of folder tiles) and ⌂.
         self.scope = SCOPE_MEMORY.get('folder', DOCUMENTS)
         if not os.path.isdir(self.scope):

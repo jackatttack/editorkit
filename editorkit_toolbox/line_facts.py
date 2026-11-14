@@ -29,8 +29,9 @@ Facts = collections.namedtuple('Facts', 'title kind first last doc code sentence
 
 # --- Reading one line -----------------------------------------------------
 
-def describe(source, line):
-    """Facts for 1-based line of source."""
+def describe(source, line, parsed=None):
+    """Facts for 1-based line of source. parsed: (tree, parents) when the
+    caller has parsed the source already (walk does, once)."""
     lines = source.split('\n')
     text = lines[line - 1] if 0 < line <= len(lines) else ''
     stripped = text.strip()
@@ -38,12 +39,14 @@ def describe(source, line):
         return Facts('Blank line', 'blank', line, line, '', '', '')
     if stripped.startswith('#'):
         return Facts('Comment', 'comment', line, line, stripped.lstrip('#').strip(), '', '')
-    try:
-        tree = ast.parse(source)
-    except SyntaxError:
-        return Facts(clip(stripped, TITLE_LENGTH), 'line', line, line, '', stripped,
-                     'The file does not parse yet, so this is the line as text.')
-    parents = parents_of(tree)
+    if parsed is None:
+        try:
+            tree = ast.parse(source)
+        except SyntaxError:
+            return Facts(clip(stripped, TITLE_LENGTH), 'line', line, line, '', stripped,
+                         'The file does not parse yet, so this is the line as text.')
+        parsed = (tree, parents_of(tree))
+    tree, parents = parsed
     node = innermost_statement(tree, line)
     if node is None:
         return Facts(clip(stripped, TITLE_LENGTH), 'line', line, line, '', stripped, '')
@@ -101,9 +104,60 @@ def facts_for(node, parents, lines, stripped):
                      % (short(node.value), '`%s`' % owner if owner else 'the function'))
     word = next((word for kind, word in BLOCK_WORDS.items() if isinstance(node, kind)), None)
     if word:
-        return Facts('%s block' % word, word, first, last, '', code,
-                     'A `%s` block: the indented lines under it belong to it.' % word)
+        return Facts('%s block' % word, word, first, last, '', code, block_sentence(node))
     return Facts(title, type(node).__name__.lower(), first, last, '', code, '')
+
+
+def block_sentence(node):
+    """What a block does, in words."""
+    if isinstance(node, (ast.For, ast.AsyncFor)):
+        return 'Repeats the lines under it for each `%s` in `%s`.' % (short(node.target),
+                                                                     short(node.iter))
+    if isinstance(node, ast.While):
+        return 'Repeats the lines under it while `%s`.' % short(node.test)
+    if isinstance(node, ast.If):
+        return 'Runs the lines under it only when `%s`.' % short(node.test)
+    if isinstance(node, (ast.With, ast.AsyncWith)):
+        return 'Runs the lines under it with `%s`.' % ', '.join(
+            short(item.context_expr) for item in node.items)
+    return 'Tries the lines under it; `except` catches what goes wrong.'
+
+
+# --- Walking through a selection -----------------------------------------------
+
+WALK_LIMIT = 14              # statements described for one selection
+
+
+def walk(source, first, last, limit=WALK_LIMIT):
+    """[(line, facts)]: each statement in lines first..last once, in order
+    (blank lines left out). The source is parsed once."""
+    try:
+        tree = ast.parse(source)
+        parsed = (tree, parents_of(tree))
+    except SyntaxError:
+        parsed = None
+    found, seen = [], set()
+    for line in range(first, last + 1):
+        facts = describe(source, line, parsed) if parsed else describe(source, line)
+        if facts.kind == 'blank':
+            continue
+        key = (facts.first, facts.last, facts.title)
+        if key in seen:
+            continue
+        seen.add(key)
+        found.append((line, facts))
+        if len(found) >= limit:
+            break
+    return found
+
+
+def step_words(facts):
+    """One statement in a walk, in words."""
+    if facts.kind == 'docstring':
+        return 'The docstring: %s' % (facts.doc.strip().split('\n')[0] or '…')
+    if facts.kind == 'comment':
+        return 'A comment: %s' % facts.doc
+    return facts.sentence or '`%s`' % facts.title
 
 
 # --- Helpers --------------------------------------------------------------

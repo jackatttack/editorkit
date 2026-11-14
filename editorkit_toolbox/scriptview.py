@@ -40,6 +40,7 @@ KEY_PREFIX = 'editorkit_toolbox.script:'      # + the file's real path: one wind
 RUN_ICON = '▶'
 SCISSORS_ICON = '✂️'
 QUICK_ICON = '⚡'
+SCRIPT_ZOOM = 0.9            # the first page zoom, like the docs' code; a pinch is remembered
 FIND_ICON = '🔍'                 # this script in the editor, with the Find bar
 CHECK_SECONDS = 1.0              # how often the view looks for changes
 MAX_LINES = 3000                 # longer files show this many, then say so
@@ -60,7 +61,10 @@ class ScriptTool:
         self.opener = ek.Opener(window)
         # Scrolling must not put the keyboard away: Scissors rides there as
         # this window's Pair keys, and hiding the keyboard would end them.
-        self.code = web_tiles.Code(window, on_pick=self.line_picked, dismiss_keyboard=False)
+        # A Cards tile for its pinch (page zoom, 0.5-2x, remembered), the way
+        # the docs' code reads; it is a Code tile underneath.
+        self.code = web_tiles.Cards(window, on_pick=self.line_picked, dismiss_keyboard=False,
+                                    zoom=SCRIPT_ZOOM, zoom_key='script')
         window.add_page('Code', self.code)
         window.add_button(RUN_ICON, lambda *_: self.run(), 'run')
         # ✂️: back to the file's tab with the Scissors bar over it.

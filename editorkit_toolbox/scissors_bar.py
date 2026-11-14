@@ -103,8 +103,8 @@ class ScissorsBar(ui.View):
         return field
 
     def make_button(self, label, name):
-        button = ui.Button(title=label, font=('<system-bold>', 16))
-        button.corner_radius = 8
+        button = ui.Button(title=label, font=('<system>', 16))
+        button.corner_radius = 10
         button.action = lambda sender, name=name: getattr(self, name)()
         self.add_subview(button)
         return button
@@ -118,9 +118,9 @@ class ScissorsBar(ui.View):
             field.text_color = palette.text
             field.tint_color = palette.accent
             tint_placeholder(field, palette.dim)
+        from editorkit.native.base import paint_button
         for button in self.range_buttons + self.action_buttons:
-            button.background_color = palette.background
-            button.tint_color = palette.text
+            paint_button(button, palette)
         self.dash.text_color = palette.dim
         self.count_label.text_color = palette.dim
 

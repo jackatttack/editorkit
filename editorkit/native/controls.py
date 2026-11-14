@@ -9,7 +9,7 @@ A tap calls action(name). The ? at the end is standard: it opens a help
 card (the intro) over the page, and while help is on a tap on any control
 explains it instead of running it. ? again, or a tap on the card, ends help.
 """
-from .base import PADDING, ROW_HEIGHT, Tile, make_button
+from .base import PADDING, ROW_HEIGHT, Tile, make_button, paint_button
 from .card import Card
 
 
@@ -58,8 +58,7 @@ class Controls(Tile):
         self.entry(name)['button'].title = icon
 
     def paint(self, button, on):
-        button.background_color = self.palette.accent if on else self.palette.background
-        button.tint_color = self.palette.on_accent if on else self.palette.text
+        paint_button(button, self.palette, on)
 
     # --- Taps and help ----------------------------------------------------
 

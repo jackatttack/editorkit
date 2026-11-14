@@ -14,8 +14,11 @@ from ..windows import look
 ROW_HEIGHT = 36          # fields and buttons
 PADDING = 6              # around a tile's contents
 GAP = 6                  # between neighbours
-CORNER_RADIUS = 8
+CORNER_RADIUS = 10       # the card kit's buttons' corners
 FONT_SIZE = 14
+BUTTON_FONT = ('<system>', 15)
+WASH = 0.12              # a button's fill: the theme's text colour at this strength (--wash-strong)
+RULE = 0.14              # its hairline edge (--rule)
 
 
 # --- Colours --------------------------------------------------------------
@@ -42,11 +45,26 @@ def style_field(field, palette, monospace=True):
     return field
 
 
+def wash(colour, alpha):
+    """colour at alpha: the theme's text colour as a faint fill or line, so it
+    reads on light and dark themes alike (the web pages' --wash and --rule)."""
+    red, green, blue = ui.parse_color(colour)[:3]
+    return (red, green, blue, alpha)
+
+
+def paint_button(button, palette, on=False):
+    """A button lit (the accent) or not (a faint wash with a hairline edge),
+    as the card kit's buttons are."""
+    button.background_color = palette.accent if on else wash(palette.text, WASH)
+    button.tint_color = palette.on_accent if on else palette.text
+    button.border_width = 0 if on else 0.5
+    button.border_color = wash(palette.text, RULE)
+
+
 def make_button(title, action, palette):
     """A themed button; a tap calls action(sender)."""
-    button = ui.Button(title=title, font=('<system-bold>', FONT_SIZE))
-    button.background_color = palette.background
-    button.tint_color = palette.text
+    button = ui.Button(title=title, font=BUTTON_FONT)
+    paint_button(button, palette)
     button.corner_radius = CORNER_RADIUS
     button.action = action
     return button

@@ -244,6 +244,25 @@ def line_header(tool, subject, page):
     page.prose(*blocks)
 
 
+def selection_header(tool, subject, page):
+    """Selected lines: where they are, their code with ⧉ Copy, and a walk
+    through them, a sentence a statement (line_facts; nothing runs)."""
+    import textwrap
+    first = subject.line
+    last = first + subject.text.strip('\n').count('\n')
+    title = 'Lines %d–%d' % (first, last) if last > first else 'Line %d' % first
+    where = ' › '.join(tool.scope_names(first))
+    blocks = [prose.heading(title, 1),
+              prose.meta(' · '.join(bit for bit in ('selection', where) if bit)),
+              prose.code(textwrap.dedent(subject.text.strip('\n')))]
+    steps = line_facts.walk(tool.text, first, last)
+    if steps:
+        blocks.append(prose.heading('What it does', 3))
+        blocks.append(prose.text('\n'.join('- **Line %d** · %s' % (line, line_facts.step_words(facts))
+                                           for line, facts in steps)))
+    page.prose(*blocks)
+
+
 # --- Facets -----------------------------------------------------------------
 
 def header(tool, subject, page):
@@ -251,6 +270,9 @@ def header(tool, subject, page):
     docs' own, else Python's); ⤵ to insert; Load, did you mean."""
     if subject.kind in LINE_KINDS and not subject.dotted and subject.line and tool.text:
         line_header(tool, subject, page)
+        return
+    if subject.kind == 'lines' and subject.line and tool.text:
+        selection_header(tool, subject, page)
         return
     thing = tool.thing
     if subject.kind == 'lines':

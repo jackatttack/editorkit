@@ -53,14 +53,19 @@ def open_packages():
 
 
 def open_scissors():
-    """The Scissors bar over the top of the code."""
-    from . import scissors_bar
-    return scissors_bar.open_scissors_bar()
+    """The Scissors pad in the keyboard's place."""
+    from . import scissors_pad
+    return scissors_pad.open_scissors_pad()
 
 
 def open_explain():
     from . import explain
     return explain.open_explain()
+
+
+def open_gallery():
+    from . import gallery
+    return gallery.open_gallery()
 
 
 def open_snippets():
@@ -167,6 +172,12 @@ BUILT_IN = [
               'a name in the field to explain that instead. On no name, it says what '
               'the line is. Its 📖 Docs tab searches and reads Pythonista\'s own '
               'documentation (view, add_subview, os.path); the field searches there.'},
+    {'name': 'Gallery', 'emoji': '🎨', 'what': 'every piece of the look',
+     'home': 'over the code', 'open': open_gallery,
+     'about': 'Every piece editorkit draws, side by side: Prose (the docs\' look), '
+              'Cards (chips, cards, faces, buttons) and Code (hits as Find shows them, '
+              'every row kind, a preview). Pinch any tab to see how it scales. Open it '
+              'after changing the look to check every piece still belongs together.'},
 ]
 
 

@@ -2,9 +2,9 @@
 
 Pure Python (no ui, no editor), so tests/smoke_codeview.py checks it
 headless: syntax colours and line-numbered rows, built on device lessons (no
-position: sticky; context greyed by colour, not opacity). The whole page
-scrolls sideways as one: blocks have no scroller of their own, and the
-results grow to the widest line so every block is the same width.
+position: sticky; context greyed by colour, not opacity). Lines wrap to the
+window like the docs' code blocks (WRAP_LINES), a wrapped line carrying on
+at its own indent; with WRAP_LINES False the page scrolls sideways as one.
 
 A page shell (page_html) is loaded once into a WebView (tiles.Code); file
 sections are then set or added with setResults / addResults. A tap on a
@@ -41,7 +41,9 @@ SYNTAX_COLOURS = {
     'num': '#B58CFF',
     'com': '#8a8a8a',
 }
-FONT_SIZE = 12
+FONT_SIZE = 13                   # the docs' code blocks' size (prose.py)
+WRAP_LINES = True                # lines wrap to the window; False: one line per row, sideways
+HANG = 2                         # a wrapped line carries on this many spaces past its indent
 
 BUILTINS = {
     'print', 'len', 'range', 'str', 'int', 'float', 'list', 'dict', 'set',
@@ -383,15 +385,35 @@ def css_colour(value):
 
 
 PAGE_SCRIPT = """
+function hangIndents() {
+    // A wrapped line carries on at its own indent plus HANG spaces, as
+    // Pythonista's editor wraps. Each row is worked out once.
+    if (!WRAP_LINES) { return; }
+    var codes = document.querySelectorAll('.code:not([data-hung])');
+    for (var i = 0; i < codes.length; i++) {
+        var text = codes[i].textContent, width = 0, at = 0;
+        while (at < text.length && (text[at] === ' ' || text[at] === '\\t')) {
+            width += text[at] === '\\t' ? 4 : 1;
+            at += 1;
+        }
+        var hang = (width + HANG) + 'ch';
+        codes[i].style.paddingLeft = hang;
+        codes[i].style.textIndent = '-' + hang;
+        codes[i].setAttribute('data-hung', '');
+    }
+}
 function setResults(html) {
     document.getElementById('results').innerHTML = html;
+    hangIndents();
     window.scrollTo(0, 0);
 }
 function addResults(html) {
     document.getElementById('results').insertAdjacentHTML('beforeend', html);
+    hangIndents();
 }
 function setAndEnd(html) {
     document.getElementById('results').innerHTML = html;
+    hangIndents();
     window.scrollTo(0, document.body.scrollHeight);
 }
 function clearCurrent() {
@@ -554,6 +576,20 @@ mark.new { background: #62D26F; margin-left: 2px; }
 .note { padding: 12px 4px; color: %(muted)s; font-family: -apple-system, sans-serif; }
 """
 
+# Code that flexes (WRAP_LINES): every code view wraps to the window like the
+# docs' code blocks, at their size and line height; hangIndents() in the page
+# script indents each wrapped line under its own code.
+FLEX_CSS = """
+#results { width: auto; min-width: 0; }
+.row { min-width: 0; min-height: 1.5em; line-height: 1.5; padding: 1px 0; }
+.code { white-space: pre-wrap; overflow-wrap: anywhere; flex: 1 1 auto; min-width: 0; }
+.file { background: var(--card); border-radius: 12px; margin: 0 0 10px 0; padding: 0 0 4px;
+    overflow: hidden; }
+.path { padding: 9px 12px 5px; font: 600 13px -apple-system, sans-serif; }
+.block { background: none; border-radius: 0; margin: 0; padding: 4px 0; }
+.block + .block { border-top: 1px dashed var(--rule); }
+.ln { flex: 0 0 auto; min-width: 2.4em; padding: 0 10px 0 6px; font-size: 0.85em; }
+"""
 # Output that wraps: pass as tiles.Code(extra_css=codeview.WRAP_CSS). Long
 # lines wrap at the page edge instead of the page scrolling sideways (a
 # console, logs, messages), and rows with no number drop the empty
@@ -616,15 +652,17 @@ def page_html(palette, font_size=FONT_SIZE, extra_css=''):
         'rule': wash(palette.text, 0.14),
         'line': wash(palette.text, 0.30),
     }
-    css = PAGE_CSS % values
+    css = PAGE_CSS % values + (FLEX_CSS if WRAP_LINES else '')
     # The theme's own syntax colours where it has them (RELEASE.txt 1.2).
     syntax = dict(SYNTAX_COLOURS)
     syntax.update(getattr(palette, 'syntax', None) or {})
     syntax_css = '\n'.join('.%s { color: %s; }' % item for item in syntax.items())
     script = ('var SCHEME = %s;\nvar FAST_TAPS = %s;\nvar TAP_SLOP = %d;\n'
-              'var TAP_MAX_MS = %d;\nvar TAP_DRIFT = %d;\n%s' % (
+              'var TAP_MAX_MS = %d;\nvar TAP_DRIFT = %d;\nvar WRAP_LINES = %s;\n'
+              'var HANG = %d;\n%s' % (
                   json.dumps(LINK_SCHEME), json.dumps(bool(FAST_TAPS)), TAP_SLOP,
-                  int(TAP_MAX_SECONDS * 1000), TAP_DRIFT, PAGE_SCRIPT))
+                  int(TAP_MAX_SECONDS * 1000), TAP_DRIFT, json.dumps(bool(WRAP_LINES)),
+                  HANG, PAGE_SCRIPT))
     return ('<!doctype html><html><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             '<style>%s\n%s\n%s</style></head><body><div id="results"></div>'
