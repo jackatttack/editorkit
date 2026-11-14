@@ -805,7 +805,9 @@ class Window(Homes, Moves, Gestures):
 # ---- Module functions --------------------------------------------------------
 
 def live_windows():
-    """The windows that are showing (as pins, panels or in the keyboard's place)."""
+    """The windows that are showing (as pins, panels or in the keyboard's
+    place), as a new list: always a list, empty when none are. Safe to close
+    windows while looping over it."""
     manager = _store().get('manager')
     return list(manager.windows.values()) if manager is not None else []
 

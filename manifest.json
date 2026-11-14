@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.5.4",
- "staged": "2026-11-14 20:12",
+ "version": "0.5.5",
+ "staged": "2026-11-14 21:52",
  "files": [
   [
    "LICENSE",
@@ -10,11 +10,11 @@
   ],
   [
    "README.md",
-   7486
+   8022
   ],
   [
    "editorkit/__init__.py",
-   2496
+   2515
   ],
   [
    "editorkit/_app.py",
@@ -22,7 +22,7 @@
   ],
   [
    "editorkit/annotations.py",
-   1393
+   2381
   ],
   [
    "editorkit/browse.py",
@@ -122,7 +122,7 @@
   ],
   [
    "editorkit/lessons.py",
-   9644
+   14223
   ],
   [
    "editorkit/matches.py",
@@ -266,7 +266,7 @@
   ],
   [
    "editorkit/web/render.py",
-   6309
+   7215
   ],
   [
    "editorkit/web/show.py",
@@ -294,7 +294,7 @@
   ],
   [
    "editorkit/web/tiles/feed.py",
-   8461
+   9263
   ],
   [
    "editorkit/web/tiles/keypad.py",
@@ -318,7 +318,7 @@
   ],
   [
    "editorkit/windows/gestures.py",
-   15390
+   15965
   ],
   [
    "editorkit/windows/holdmove.py",
@@ -330,7 +330,7 @@
   ],
   [
    "editorkit/windows/look.py",
-   7616
+   7795
   ],
   [
    "editorkit/windows/manager.py",
@@ -350,7 +350,7 @@
   ],
   [
    "editorkit/windows/places.py",
-   12921
+   13299
   ],
   [
    "editorkit/windows/rules.py",
@@ -378,7 +378,7 @@
   ],
   [
    "editorkit/windows/window.py",
-   36095
+   36199
   ],
   [
    "editorkit/wrench.py",
@@ -390,7 +390,7 @@
   ],
   [
    "editorkit_toolbox/console.py",
-   11956
+   14062
   ],
   [
    "editorkit_toolbox/detect.py",
@@ -430,7 +430,7 @@
   ],
   [
    "editorkit_toolbox/find.py",
-   12740
+   12741
   ],
   [
    "editorkit_toolbox/gallery.py",
@@ -438,11 +438,11 @@
   ],
   [
    "editorkit_toolbox/hub.py",
-   33133
+   33242
   ],
   [
    "editorkit_toolbox/learn.py",
-   13634
+   17125
   ],
   [
    "editorkit_toolbox/line_facts.py",
@@ -494,11 +494,7 @@
   ],
   [
    "editorkit_toolbox/runner.py",
-   10243
-  ],
-  [
-   "editorkit_toolbox/scissors_bar.py",
-   15604
+   11567
   ],
   [
    "editorkit_toolbox/scissors_moves.py",
@@ -509,16 +505,12 @@
    16064
   ],
   [
-   "editorkit_toolbox/scissors_range.py",
-   3242
-  ],
-  [
    "editorkit_toolbox/scriptops.py",
    11622
   ],
   [
    "editorkit_toolbox/scriptview.py",
-   9428
+   9364
   ],
   [
    "editorkit_toolbox/search.py",
@@ -542,7 +534,11 @@
   ],
   [
    "editorkit_toolbox/tools.py",
-   12277
+   12707
+  ],
+  [
+   "editorkit_toolbox/traceback_card.py",
+   4433
   ],
   [
    "examples/editor_annotate_and_highlight.py",
@@ -630,7 +626,7 @@
   ],
   [
    "install.py",
-   7705
+   8394
   ],
   [
    "launchers/Toolbox.py",
@@ -642,7 +638,7 @@
   ],
   [
    "lessons/01_windows.py",
-   3430
+   3324
   ],
   [
    "lessons/02_cards.py",
@@ -679,6 +675,18 @@
   [
    "lessons/10_build_a_tool.py",
    6616
+  ],
+  [
+   "pythonista_lessons/01_ui.py",
+   4342
+  ],
+  [
+   "pythonista_lessons/02_scene.py",
+   5128
+  ],
+  [
+   "pythonista_lessons/03_dialogs.py",
+   3187
   ]
  ]
 }

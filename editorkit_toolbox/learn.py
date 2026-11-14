@@ -4,7 +4,7 @@ The installer puts them in Documents/Toolbox/lessons and /examples. Learn
 shows them as cards in the same style as Files and Snippets: lessons in
 order (their steps on the card), then the examples grouped by the first
 word of their name (tool_, window_, editor_, theme_). Chips along the top
-show all, lessons or examples. A tap opens the script in the editor (▶ runs
+show everything, one lesson pack, or the examples. A tap opens the script in the editor (▶ runs
 it); 📜 opens it in a script window. ℹ️ in the header says what Toolbox and
 editorkit are (ABOUT; the hub's ℹ️ About shows it too).
 
@@ -13,12 +13,23 @@ deleted, from the installer's untouched copies in Documents/Toolbox/.originals.
 A changed file is moved aside to Documents/_to_delete first (fileops.trash),
 never overwritten, and files you added yourself are never touched.
 
+Lesson packs: Toolbox's own (editorkit's lessons, then Pythonista's own
+modules), and any other a JSON file in Documents/Toolbox/packs/ names, the
+way tool plugins join the hub:
+
+    {"name": "My library", "emoji": "📦", "folder": "projects/mylib/lessons",
+     "about": "What the lessons teach, in a line."}
+
+folder is relative to Documents (or absolute). A file that cannot be read
+shows as a note in Learn; Learn still opens.
+
     from editorkit_toolbox import learn
     learn.open_learn()
 """
 import ast
 import filecmp
 import html
+import json
 import os
 import shutil
 import time
@@ -40,14 +51,26 @@ TOOLBOX_HOME = os.path.join(DOCUMENTS, 'Toolbox')
 LESSONS_FOLDER = os.path.join(TOOLBOX_HOME, 'lessons')
 EXAMPLES_FOLDER = os.path.join(TOOLBOX_HOME, 'examples')
 ORIGINALS_FOLDER = os.path.join(TOOLBOX_HOME, '.originals')   # the installer's untouched copies
-LEARN_FOLDERS = (('lessons', LESSONS_FOLDER), ('examples', EXAMPLES_FOLDER))
+PYTHONISTA_LESSONS_FOLDER = os.path.join(TOOLBOX_HOME, 'pythonista_lessons')
+PACKS_FOLDER = os.path.join(TOOLBOX_HOME, 'packs')   # lesson packs others add: one JSON file each
+LEARN_FOLDERS = (('lessons', LESSONS_FOLDER), ('examples', EXAMPLES_FOLDER),
+                 ('pythonista_lessons', PYTHONISTA_LESSONS_FOLDER))
 EXAMPLES_WHERE = 'Toolbox/examples'     # the folder line on an example's card
 START_ZOOM = 0.9             # the page's first size; a pinch is remembered
 LESSON_COLOUR = '#F5C26B'    # a lesson card's edge (examples take Files' colour for .py)
 STEP_LINES = 8               # steps listed on a lesson's card before it cuts
 RESTORE_ARM_SECONDS = 5      # Restore asks Sure?; a second tap within this restores
 ABOUT_ICON = 'ℹ️'
-SHOWING = (('all', 'All'), ('lessons', 'Lessons'), ('examples', 'Examples'))
+# Toolbox's own lesson packs, in Learn's order; pack files in PACKS_FOLDER follow.
+BUILT_IN_PACKS = (
+    {'name': 'editorkit', 'emoji': '🎓', 'folder': LESSONS_FOLDER, 'built_in': True,
+     'about': 'Script Pythonista itself: windows over your code, cards, the editor, '
+              'your own tools.'},
+    {'name': 'Pythonista', 'emoji': '🐍', 'folder': PYTHONISTA_LESSONS_FOLDER, 'built_in': True,
+     'about': "Pythonista's own modules, a step at a time: ui, scene and dialogs."},
+)
+DEFAULT_PACK_EMOJI = '📚'
+EMPTY_PACK = 'No lessons in %s yet.'
 EXAMPLE_GROUPS = (('tool', 'Finished tools · use them, copy them'),
                   ('window', 'Windows'),
                   ('editor', 'The editor'),
@@ -172,15 +195,52 @@ def restore(plan):
 
 # --- The page (pure) ----------------------------------------------------------
 
+
+def pack_from_file(path):
+    """A lesson pack from its JSON file ({"name", "folder", "emoji",
+    "about"}; folder relative to Documents or absolute). A file that cannot
+    be read is a pack with an 'error' and no folder, so Learn can say so."""
+    name = os.path.splitext(os.path.basename(path))[0]
+    try:
+        with open(path, encoding='utf-8') as handle:
+            spec = json.load(handle)
+        folder = str(spec['folder'])
+    except Exception as problem:
+        return {'name': name, 'emoji': '⚠️', 'folder': None, 'about': '',
+                'error': '%s could not load: %s' % (os.path.basename(path), problem)}
+    if not os.path.isabs(folder):
+        folder = os.path.join(DOCUMENTS, folder)
+    return {'name': str(spec.get('name', name)), 'emoji': str(spec.get('emoji', DEFAULT_PACK_EMOJI)),
+            'folder': folder, 'about': str(spec.get('about', ''))}
+
+
+def lesson_packs(packs_folder=PACKS_FOLDER, built_in=BUILT_IN_PACKS):
+    """Toolbox's own packs, then one per JSON file in packs_folder, by file name."""
+    packs = [dict(pack) for pack in built_in]
+    try:
+        names = sorted(os.listdir(packs_folder))
+    except OSError:
+        names = []
+    packs.extend(pack_from_file(os.path.join(packs_folder, name))
+                 for name in names if name.endswith('.json'))
+    return packs
+
+
+def pack_key(pack):
+    """The chip key that shows one pack."""
+    return 'pack:' + pack['name']
+
+
 def view_item(path):
     """📜's item on a card: the hub's own (the script in a script window)."""
     return search.ViewHit(search.Hit(path, 1, 0, 0))
 
 
-def lesson_card(path, headline, summary, steps):
+def lesson_card(path, headline, summary, steps, emoji='🎓'):
     """A lesson as a card in Files' style: its steps numbered where a file
-    card shows its first lines, edged in the lesson colour."""
-    where = '🎓 %d steps · ▶ runs it' % len(steps) if steps else '🎓 lesson'
+    card shows its first lines, edged in the lesson colour. emoji is its
+    pack's."""
+    where = '%s %d steps · ▶ runs it' % (emoji, len(steps)) if steps else '%s lesson' % emoji
     body = '<div class="fx-where">%s</div>' % html.escape(where)
     listed = '\n'.join('%d  %s' % (number, step) for number, step in enumerate(steps, 1))
     body += card_kit.code(listed or summary, lines=STEP_LINES, python=False)
@@ -209,25 +269,39 @@ def restore_row(page, changed, armed):
     page.buttons([card_kit.Action(label, ('restore',), armed=armed)])
 
 
-def learn_page(lessons, examples, showing='all', changed=None, armed=False, message=''):
-    """The Learn page: chips, any message, ♻️ Restore, then the lessons in
-    order and the examples by group."""
+def learn_page(packs, examples, showing='all', changed=None, armed=False, message=''):
+    """The Learn page: chips (All, one per lesson pack, Examples), any
+    message, ♻️ Restore, then each pack's lessons in order and the examples
+    by group. packs is [(pack, lessons)] (lesson_packs, scripts)."""
     page = card_kit.Page()
-    counts = {'all': len(lessons) + len(examples), 'lessons': len(lessons),
-              'examples': len(examples)}
-    page.chips([card_kit.Chip('%s%s · %d' % ('✓ ' if key == showing else '', label, counts[key]),
+    chips = [('all', 'All', sum(len(lessons) for _pack, lessons in packs) + len(examples))]
+    chips.extend((pack_key(pack), '%s %s' % (pack['emoji'], pack['name']), len(lessons))
+                 for pack, lessons in packs)
+    chips.append(('examples', 'Examples', len(examples)))
+    page.chips([card_kit.Chip('%s%s · %d' % ('✓ ' if key == showing else '', label, count),
                               item=('show', key))
-                for key, label in SHOWING])
+                for key, label, count in chips])
     if message:
         page.note(message)
-    if showing in ('all', 'lessons'):
+    shown = [(pack, lessons) for pack, lessons in packs
+             if showing in ('all', 'lessons', pack_key(pack))]
+    if shown:
         restore_row(page, changed, armed)
-        page.heading('Lessons · in order')
         page.note(HOW_IT_WORKS)
+    for pack, lessons in shown:
+        page.heading('%s %s · in order' % (pack['emoji'], pack['name']))
+        if pack.get('error'):
+            page.note(pack['error'])
+            continue
+        if pack.get('about'):
+            page.note(pack['about'])
         if lessons:
-            page.grid([lesson_card(*entry) for entry in lessons], min_width=filecards.CARD_WIDTH)
-        else:
+            page.grid([lesson_card(*entry, emoji=pack['emoji']) for entry in lessons],
+                      min_width=filecards.CARD_WIDTH)
+        elif pack.get('built_in'):
             page.note(MISSING % 'lessons')
+        else:
+            page.note(EMPTY_PACK % pack['folder'])
     if showing in ('all', 'examples'):
         if not examples:
             page.heading('Examples')
@@ -262,7 +336,9 @@ class LearnTool:
         changed = None
         if os.path.isdir(ORIGINALS_FOLDER):
             changed = len(restore_plan(ORIGINALS_FOLDER))
-        self.cards.show(learn_page(scripts(LESSONS_FOLDER), scripts(EXAMPLES_FOLDER),
+        packs = [(pack, scripts(pack['folder']) if pack.get('folder') else [])
+                 for pack in lesson_packs()]
+        self.cards.show(learn_page(packs, scripts(EXAMPLES_FOLDER),
                                    self.showing, changed, time.time() < self.armed_until,
                                    self.message))
 

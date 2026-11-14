@@ -39,6 +39,8 @@ FLING_SPEED = 900             # a fling this fast (points a second) lines a pin 
                               #   up with the edge it was flung at; it never crosses
 
 CLOSE_KEYBOARD_ON_OPEN = True # opening a window puts the keyboard away
+CLOSE_KEYBOARD_ON_DRAG = True # moving or resizing a window puts it away too (not while
+                              #   a window holds the keyboard's place: that would fold it)
 BLOCK_SWIPES = True           # side swipes off while a drag is on
 SNAP_PINS_TO_SIDES = True     # False: a pin stays exactly where it is dropped
 MINIMISE_TO = 'tray'          # – sends a window to 'tray' (a chip in the home's bar), 'pin',

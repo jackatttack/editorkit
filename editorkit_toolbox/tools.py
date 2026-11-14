@@ -63,11 +63,6 @@ def open_explain():
     return explain.open_explain()
 
 
-def open_gallery():
-    from . import gallery
-    return gallery.open_gallery()
-
-
 def open_snippets():
     # Imported on first use, so the hub still opens if Snippets cannot load.
     from . import snippets
@@ -172,12 +167,7 @@ BUILT_IN = [
               'a name in the field to explain that instead. On no name, it says what '
               'the line is. Its 📖 Docs tab searches and reads Pythonista\'s own '
               'documentation (view, add_subview, os.path); the field searches there.'},
-    {'name': 'Gallery', 'emoji': '🎨', 'what': 'every piece of the look',
-     'home': 'over the code', 'open': open_gallery,
-     'about': 'Every piece editorkit draws, side by side: Prose (the docs\' look), '
-              'Cards (chips, cards, faces, buttons) and Code (hits as Find shows them, '
-              'every row kind, a preview). Pinch any tab to see how it scales. Open it '
-              'after changing the look to check every piece still belongs together.'},
+
 ]
 
 
@@ -257,10 +247,20 @@ def plugin_tools():
                     found.extend(provided_tools(spec, group))
                 else:
                     found.append(plugin_tool(spec, group, default_function))
-            except Exception:
-                print('Toolbox: could not load the plugin %s' % name)
-                traceback.print_exc()
+            except Exception:                # the hub shows it as a dimmed card instead
+                found.append(broken_plugin(name, folder))
     return found
+
+
+def broken_plugin(file_name, folder):
+    """A stand-in card for a plugin file that failed to load: the hub shows
+    it dimmed with "could not load", and its help card names the error.
+    Call it inside the except block (it reads the exception being handled)."""
+    error = traceback.format_exception_only(*sys.exc_info()[:2])[-1].strip()
+    return {'name': '⚠ ' + file_name, 'emoji': '⚠️', 'what': 'could not load',
+            'home': 'nowhere', 'open': None, 'broken': True,
+            'about': 'Toolbox could not load the plugin file %s (in %s). Fix the file, '
+                     'then open the hub again.\n\n%s' % (file_name, folder, error)}
 
 
 def with_plugins(built_in, plugins):
@@ -280,7 +280,17 @@ def with_plugins(built_in, plugins):
     return built_in + loose + cards
 
 
-TOOLS = with_plugins(BUILT_IN, plugin_tools())
+def load():
+    """Build the tool list afresh: BUILT_IN plus whatever the plugin folders
+    hold now. The hub calls it each time it opens, so a plugin file added
+    since Pythonista started shows without a restart. Returns the list, also
+    kept as TOOLS."""
+    global TOOLS
+    TOOLS = with_plugins(BUILT_IN, plugin_tools())
+    return TOOLS
+
+
+TOOLS = load()
 
 
 def every_tool():

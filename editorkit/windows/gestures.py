@@ -19,6 +19,7 @@ class Gestures(object):
             return
         pin.dragging = True
         pin.pressed_at = None
+        self._keyboard_away_for_drag()
         self.manager.swipes.block(pin.objc_instance.superview())   # editor or console
         x, y, width, height = places.frame_of(pin)
         grow = look.LIFT_GROW
@@ -135,6 +136,17 @@ class Gestures(object):
 
     # ==== Holding the panel ====
 
+    def _keyboard_away_for_drag(self):
+        """A drag needs the screen: put the keyboard away (look.CLOSE_KEYBOARD_ON_DRAG),
+        unless a window holds the keyboard's place, where hiding the keyboard
+        would fold it."""
+        if not look.CLOSE_KEYBOARD_ON_DRAG or self.place == 'dock':
+            return
+        if any(getattr(window, 'place', None) == 'dock'
+               for window in self.manager.windows.values()):
+            return
+        places.put_every_keyboard_away()
+
     def _grab(self, job):
         self.riding = False          # placed by hand now: stop riding the keyboard
         self.docking = False
@@ -142,6 +154,7 @@ class Gestures(object):
         if self._busy():
             self.grabbing = None
             return
+        self._keyboard_away_for_drag()
         if self.place == 'dock' and job == 'move':
             self.grabbing = job                    # a pull up brings it back over the code
             return

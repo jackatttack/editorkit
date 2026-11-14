@@ -8,8 +8,10 @@
     an exception             its traceback
     PIL / ui.Image / a matplotlib figure or pyplot
                              a picture (PNG, embedded)
-    [dict, dict, ...]        a table (the first dict's keys are the columns)
-    dict, list, tuple        pretty JSON
+    [dict, dict, ...]        a table in the docs' look (the first dict's keys
+                             are the columns)
+    a flat dict              terms: each key beside its value (prose.terms)
+    dict, list, tuple        pretty JSON (nested data)
     a path to a file         a coloured preview of its first lines
     HTML                     as it is
     anything else            its text (str(), or repr() for objects)
@@ -28,14 +30,14 @@ import re
 import traceback
 from collections import namedtuple
 
-from . import codeview
+from . import codeview, prose
 from .. import files
 
 
 # --- Settings -------------------------------------------------------------
 
 MAX_TEXT_LINES = 400             # longer text is cut, with "… n more lines"
-MAX_TABLE_ROWS = 200
+MAX_TABLE_ROWS = 200             # also the most keys a dict shows as terms
 PREVIEW_LINES = 40               # lines of a file shown for a path
 
 
@@ -103,7 +105,7 @@ def is_records(thing):
 def table_html(records):
     columns = list(records[0].keys())
     shown = records[:MAX_TABLE_ROWS]
-    out = ['<table class="fd-table"><tr>']
+    out = ['<div class="ek-prose"><table><tr>']
     out.extend('<th>%s</th>' % codeview.escape(str(column)) for column in columns)
     out.append('</tr>')
     for record in shown:
@@ -111,12 +113,27 @@ def table_html(records):
         out.extend('<td>%s</td>' % codeview.escape(str(record.get(column, '')))
                    for column in columns)
         out.append('</tr>')
-    out.append('</table>')
+    out.append('</table></div>')
     if len(records) > len(shown):
         out.append('<div class="note">… %d more rows</div>' % (len(records) - len(shown)))
     lines = ['\t'.join(str(column) for column in columns)]
     lines.extend('\t'.join(str(record.get(column, '')) for column in columns) for record in shown)
     return ''.join(out), '\n'.join(lines)
+
+
+SCALARS = (str, int, float, bool, type(None))
+
+
+def is_flat_dict(thing):
+    """A dict whose values are all plain values: shown as terms."""
+    return (isinstance(thing, dict) and bool(thing) and len(thing) <= MAX_TABLE_ROWS
+            and all(isinstance(value, SCALARS) for value in thing.values()))
+
+
+def terms_html(mapping):
+    """Each key beside its value, as Python would write the value."""
+    pairs = [(str(key), repr(value)) for key, value in mapping.items()]
+    return '<div class="ek-prose">%s</div>' % prose.terms(pairs)
 
 
 def file_preview(path, section):
@@ -149,6 +166,9 @@ def render(thing, section=0):
     if is_records(thing):
         html, text = table_html(list(thing))
         return Rendered(html, {}, text)
+    if is_flat_dict(thing):
+        text = json.dumps(thing, indent=2, default=str, ensure_ascii=False)
+        return Rendered(terms_html(thing), {}, text)
     if isinstance(thing, (dict, list, tuple)):
         text = json.dumps(thing, indent=2, default=str, ensure_ascii=False)
         return Rendered(pre(text), {}, text)

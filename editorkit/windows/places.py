@@ -77,6 +77,16 @@ def put_keyboard_away():
         view.resignFirstResponder()
 
 
+def put_every_keyboard_away():
+    """Put the keyboard away wherever it is: the editor, the console's
+    prompt, or a field in a window (put_keyboard_away covers the editor only)."""
+    put_keyboard_away()
+    from objc_util import ObjCClass
+    window = ObjCClass('UIApplication').sharedApplication().keyWindow()
+    if window is not None:
+        window.endEditing_(True)
+
+
 def text_inputs(view):
     """Every UITextView and UITextField inside view (a ui view or an ObjC
     view), itself included."""

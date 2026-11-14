@@ -14,9 +14,12 @@ should_stop() is checked on every line of the script's own frames, so Stop
 ends a pure-Python endless loop. It cannot interrupt a long C call such as
 time.sleep(600) until that call returns.
 
-The result is Result(status, seconds, rows): status 'done', 'error' or
-'stopped'; rows are codeview Rows for a traceback, with item=(path, line)
-on each frame that is a real file, so a tap can open it.
+The result is Result(status, seconds, rows, problem): status 'done',
+'error' or 'stopped'; rows are codeview Rows for notes (a SystemExit code);
+problem is None, or a Problem(title, frames, text) for an exception or a
+syntax error: plain data that traceback_card turns into the Console's card.
+Each Frame says whether it is the reader's own code (own), and carries a
+path only when a tap can open the file there.
 
 Limits (first version): a fresh namespace per run; input() is not wired
 up; threads the script starts print to the normal console.
@@ -44,7 +47,10 @@ DOCUMENTS = os.path.expanduser('~/Documents')
 # --- Internals ------------------------------------------------------------
 
 RUNNER_FILE = os.path.realpath(__file__)
-Result = namedtuple('Result', 'status seconds rows')
+Result = namedtuple('Result', 'status seconds rows problem')
+Result.__new__.__defaults__ = (None,)
+Frame = namedtuple('Frame', 'path short name line code own')
+Problem = namedtuple('Problem', 'title frames text')
 _routing_lock = threading.Lock()
 
 
@@ -94,14 +100,14 @@ def run_source(source, path, put, should_stop=lambda: False):
     out = LineSplitter(put, 'out')
     err = LineSplitter(put, 'err')
     started = time.time()
-    status, rows = 'done', []
+    status, rows, problem = 'done', [], None
     namespace = {'__name__': '__main__', '__file__': filename,
                  '__builtins__': builtins}
     with lines_known(filename, source):
         try:
             code = compile(source, filename, 'exec')
         except SyntaxError as error:
-            return Result('error', time.time() - started, syntax_rows(error, filename))
+            return Result('error', time.time() - started, [], syntax_problem(error, filename))
         with captured(out, err), script_folder(path):
             sys.settrace(stopper(filename, should_stop))
             try:
@@ -113,12 +119,12 @@ def run_source(source, path, put, should_stop=lambda: False):
                     rows = [Row('SystemExit: %s' % exit.code, 'note')]
             except BaseException as error:
                 status = 'error'
-                rows = traceback_rows(error)
+                problem = problem_for(error)
             finally:
                 sys.settrace(None)
                 out.flush_rest()
                 err.flush_rest()
-    return Result(status, time.time() - started, rows)
+    return Result(status, time.time() - started, rows, problem)
 
 
 def stopper(filename, should_stop):
@@ -250,37 +256,62 @@ def script_folder(path):
             pass
 
 
-# --- Tracebacks as rows ---------------------------------------------------
+# --- Tracebacks as plain data ---------------------------------------------
 
-def frame_item(filename, line):
-    """What a tap on a frame hands back: (path, line), or None when the
-    frame is not a real file (code with no saved path)."""
+STANDARD_LIBRARY = os.path.realpath(os.path.dirname(os.__file__))
+
+
+def is_own(path):
+    """Whether a frame's file is the reader's own code. Libraries are not:
+    anything in a site-packages folder, Python's standard library, or inside
+    an app bundle (Pythonista's own modules). Everything else is, wherever
+    it lives (Documents, iCloud), and so is code with no saved path."""
+    if not path or not os.path.isabs(path):
+        return True
+    real = os.path.realpath(path)
+    library = ('site-packages' in real or real.startswith(STANDARD_LIBRARY + os.sep)
+               or '.app/' in real)
+    return not library
+
+
+def real_path(filename, line):
+    """The frame's file when a tap can open it there, else None (code with
+    no saved path)."""
     if line and os.path.isfile(filename):
-        return (filename, line)
+        return filename
     return None
 
 
-def traceback_rows(error):
-    """The error as Rows: one note and one code row per frame (the runner's
-    own frames left out), then the error itself."""
-    frames = [frame for frame in traceback.extract_tb(error.__traceback__)
-              if os.path.realpath(frame.filename) != RUNNER_FILE]
-    rows = [Row('Traceback (most recent call last)', 'heading')]
-    for frame in frames:
-        rows.append(Row('%s, in %s' % (short_name(frame.filename), frame.name), 'note'))
-        rows.append(Row(frame.line or '', 'code',
-                        frame_item(frame.filename, frame.lineno), frame.lineno))
-    for line in traceback.format_exception_only(type(error), error):
-        for part in line.rstrip('\n').split('\n'):
-            rows.append(Row(part, 'error'))
-    return rows
+def frame_for(filename, name, line, code):
+    return Frame(real_path(filename, line), short_name(filename), name, line,
+                 (code or '').strip(), is_own(filename))
 
 
-def syntax_rows(error, filename):
-    """A SyntaxError as Rows: where, the line (tappable), and the message."""
-    rows = [Row('%s, line %s' % (short_name(filename), error.lineno), 'note')]
-    if error.text:
-        rows.append(Row(error.text.rstrip('\n'), 'code',
-                        frame_item(filename, error.lineno), error.lineno))
-    rows.append(Row('%s: %s' % (type(error).__name__, error.msg), 'error'))
-    return rows
+def problem_for(error):
+    """An exception as a Problem: its last line as the title, its frames
+    (the runner's own left out), and the traceback as text for ⧉ Copy."""
+    summary = [frame for frame in traceback.extract_tb(error.__traceback__)
+               if os.path.realpath(frame.filename) != RUNNER_FILE]
+    frames = [frame_for(frame.filename, frame.name, frame.lineno, frame.line)
+              for frame in summary]
+    last = traceback.format_exception_only(type(error), error)
+    text = ('Traceback (most recent call last):\n'
+            + ''.join(traceback.format_list(summary)) + ''.join(last))
+    return Problem(short_title(last[-1].strip(), type(error).__name__), frames, text)
+
+
+def short_title(title, type_name):
+    """'json.decoder.JSONDecodeError: ...' as 'JSONDecodeError: ...': the
+    module path says little on a phone; ⧉ Copy keeps the full text."""
+    qualified = title.split(':', 1)[0]
+    if qualified.endswith('.' + type_name):
+        return type_name + title[len(qualified):]
+    return title
+
+
+def syntax_problem(error, filename):
+    """A SyntaxError as a Problem: one frame, the line it points at."""
+    title = '%s: %s' % (type(error).__name__, error.msg)
+    frame = frame_for(filename, '', error.lineno, error.text)
+    text = ''.join(traceback.format_exception_only(type(error), error))
+    return Problem(title, [frame], text)

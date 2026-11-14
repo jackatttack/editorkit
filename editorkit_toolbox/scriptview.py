@@ -191,8 +191,7 @@ def window_key(path):
 
 
 def live_window(key):
-    live = ek.live_windows()
-    for window in (live.values() if hasattr(live, 'values') else live):
+    for window in ek.live_windows():
         if getattr(window, 'script_key', None) == key:
             return window
     return None

@@ -1,7 +1,8 @@
 """Feed: a scrolling history of entries, each a card (the Console's page).
 
     feed = tiles.Feed(window, on_pick=picked)        # picked gets your own items
-    entry = feed.add('main.py', status='running')    # a card: status, title, time
+    entry = feed.add('main.py', status='running', detail='whole script')
+                                                     # a card: status, title; detail, note, time below
     entry.append('a line of output')                 # anything editorkit.render takes
     entry.append(figure)
     entry.finish('done', note='0.42 s')              # ✓ ✗ ■ by status
@@ -16,7 +17,7 @@ import re
 import time
 from collections import namedtuple
 
-from .. import codeview, render
+from .. import codeview, prose, render
 from .code import Code
 
 
@@ -29,40 +30,44 @@ ACTIONS = (('copy', '📋'), ('fold', None), ('remove', '✕'))   # fold shows �
 FeedAction = namedtuple('FeedAction', 'kind entry')
 
 FEED_CSS = """
-.fd-head { margin: 14px 0 4px 0; padding: 7px 8px; background: var(--card);
-    border-radius: 8px; font: 600 13px -apple-system, sans-serif; }
-.fd-head.folded { opacity: 0.8; }
-.fd-row { display: flex; align-items: center; gap: 6px; }
+.fd-head { margin: 16px 0 6px 0; padding: 9px 12px; background: var(--wash);
+    border-radius: 12px; font: 600 15px -apple-system, sans-serif; }
+.fd-head.folded { opacity: 0.75; }
+.fd-row { display: flex; align-items: center; gap: 8px; }
 .fd-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fd-meta { font: 11px -apple-system, sans-serif; opacity: 0.6; margin-top: 3px;
+.fd-meta { font: 13px -apple-system, sans-serif; color: var(--muted); margin-top: 3px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fd-act { padding: 2px 7px; border-radius: 6px; background: var(--wash-strong);
+.fd-act { padding: 3px 10px; border-radius: 10px; background: var(--wash-strong);
     cursor: pointer; font-weight: normal; }
-.fd-part { margin-left: 6px; padding: 0 0 0 10px;
-    border-left: 2px solid var(--rule); }
+.fd-part { margin-left: 8px; padding: 0 0 0 12px;
+    border-left: 1px solid var(--rule); }
 /* Printed lines arrive as one codeview section per beat: inside a card they
    run together as one stream instead of floating in separate blocks. */
 .fd-part .file { margin: 0; }
 .fd-part .block { margin: 0; padding: 0; background: none; border-radius: 0; }
 .fd-part .path:empty { display: none; }
-.fd-pre { font: 12px Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere;
+/* Printed lines have no line numbers: no empty gutter pushing them right. */
+.fd-part .ln:empty { flex: 0 0 4px; min-width: 0; padding: 0; }
+.fd-pre { font: 13px Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere;
     margin: 4px 0; }
 .fd-error { color: #FF6B6B; }
-.fd-img { max-width: 100%; border-radius: 6px; display: block; margin: 6px 0; }
-.fd-table { border-collapse: collapse; font: 12px -apple-system, sans-serif; margin: 4px 0; }
-.fd-table th, .fd-table td { border-bottom: 1px solid var(--rule);
-    padding: 3px 8px; text-align: left; }
+.fd-img { max-width: 100%; border-radius: 10px; display: block; margin: 8px 0; }
+.fd-part .ek-prose { padding: 6px 4px 2px; font-size: 15px; }
+/* show()n dicts stay side by side even in a narrow Console: values are short. */
+.fd-part .ek-terms { display: grid; }
+.fd-part .ek-terms dd { margin: 0; }
 """
 
 
 class Entry:
     """One card in a Feed. Use feed.add() to make one."""
 
-    def __init__(self, feed, number, title, status=None):
+    def __init__(self, feed, number, title, status=None, detail=''):
         self.feed = feed
         self.number = number
         self.title = title
         self.status = status
+        self.detail = detail         # what ran ('whole script', 'lines 3-5'), on the meta line
         self.note = ''
         self.started = time.time()
         self.parts = []              # render.Rendered, in order
@@ -91,13 +96,13 @@ def head_html(entry, ids):
         buttons.append('<span class="fd-act"%s>%s</span>' % (go, label))
     mark = STATUS_MARKS.get(entry.status, '')
     when = time.strftime('%H:%M:%S', time.localtime(entry.started))
-    note = ' · ' + entry.note if entry.note else ''
+    meta = ' · '.join(part for part in (entry.detail, entry.note, when) if part)
     return ('<div class="fd-head%s" id="fdh%d"><div class="fd-row">'
             '<span class="fd-title">%s</span>%s</div>'
             '<div class="fd-meta">%s</div></div>' % (
                 ' folded' if entry.folded else '', entry.number,
                 codeview.escape(('%s %s' % (mark, entry.title)).strip()),
-                ''.join(buttons), codeview.escape(when + note)))
+                ''.join(buttons), codeview.escape(meta)))
 
 
 GO_ID = re.compile(r'data-go="([^"]*)"')
@@ -114,8 +119,9 @@ def namespaced(html, items, prefix):
 
 
 def copy_text(text):
-    from objc_util import ObjCClass
-    ObjCClass('UIPasteboard').generalPasteboard().setString_(text)
+    """To the clipboard through editorkit.clip, never the clipboard module."""
+    from ... import clip
+    clip.set_text(text)
 
 
 class Feed(Code):
@@ -128,7 +134,8 @@ class Feed(Code):
         self.next_section = 1
         options.setdefault('fresh_on_grow', True)
         Code.__init__(self, window, on_pick=self.picked,
-                      extra_css=codeview.WRAP_CSS + FEED_CSS + extra_css, **options)
+                      extra_css=codeview.WRAP_CSS + prose.CSS + FEED_CSS + extra_css,
+                      **options)
 
     # --- Building ---------------------------------------------------------
 
@@ -141,9 +148,9 @@ class Feed(Code):
         ids = codeview.SectionIds(self.take_section())
         return head_html(entry, ids), ids.items
 
-    def add(self, title, thing=None, status=None):
+    def add(self, title, thing=None, status=None, detail=''):
         """A new entry at the end; returns it."""
-        entry = Entry(self, self.next_number, title, status)
+        entry = Entry(self, self.next_number, title, status, detail)
         self.next_number += 1
         self.entries.append(entry)
         if len(self.entries) > self.keep:
@@ -183,6 +190,15 @@ class Feed(Code):
     def clear(self):
         self.entries = []
         self.set_html('')
+
+    def fold_all(self):
+        """Fold every entry to its header (the Console does this when a new
+        run starts, so the newest output has the room)."""
+        if all(entry.folded for entry in self.entries):
+            return
+        for entry in self.entries:
+            entry.folded = True
+        self.redraw()
 
     def redraw(self):
         pieces, items = [], {}

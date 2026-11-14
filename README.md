@@ -96,8 +96,19 @@ A tool joins the hub through a plugin file: one JSON file in
 the hub imports `module` fresh and calls `function` when the tool's card
 is tapped. Add `"group": "Games"` to put it in a group. One file can give
 several tools: name a function with `"tools"` that returns a list of tool
-dicts (`name`, `emoji`, `what`, `about`, `open`). Files in
-`Documents/Toolbox/games/` land in the Games group.
+dicts (`name`, `emoji`, `what`, `about`, `open`).
+
+Lessons come the same way. 🎓 Learn shows Toolbox's own packs (editorkit,
+then 🐍 Pythonista: ui, scene and dialogs) and any pack a JSON file in
+`Documents/Toolbox/packs/` names:
+
+    {"name": "My library", "emoji": "📦", "folder": "projects/mylib/lessons",
+     "about": "What the lessons teach, in a line."}
+
+A pack is a folder of lesson scripts (`editorkit.lessons.Lesson`). A step
+can run in the background (`@lesson.step(title, background=True)`, for
+dialogs and waits), show any ui view beside its code (`lesson.show_view`),
+and open the docs at the right entry (`docs='ui.Button'`).
 
 ## Build with editorkit
 

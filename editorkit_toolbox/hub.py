@@ -169,8 +169,9 @@ def tool_card(tool):
                 'caption': '%d %s' % (count, tool['home'] if count != 1 else tool['home'].rstrip('s')),
                 'dim': False, 'item': ('group', tool)}
     ready = tool['open'] is not None
+    says_why = ready or tool.get('broken')     # a broken plugin says "could not load"
     return {'emoji': tool['emoji'], 'title': tool['name'],
-            'caption': tool.get('what', tool['home']) if ready else SOON_CAPTION,
+            'caption': tool.get('what', tool['home']) if says_why else SOON_CAPTION,
             'dim': not ready, 'item': ('tool', tool)}
 
 
@@ -339,6 +340,7 @@ def scope_label(folder):
 class Hub:
 
     def __init__(self):
+        tools.load()                 # plugin files added since the last open show now
         self.help_mode = False
         self.group = None            # the group whose page shows (Games), or None
         self.window = ek.Window(TITLE, emoji=EMOJI, key=WINDOW_KEY, tray_home=True)
@@ -416,8 +418,7 @@ class Hub:
         from editorkit import tabs
         from editorkit.windows import tabrow
         # A window's stand-in tab: the window comes back out as itself.
-        live = ek.live_windows()
-        for window in (live.values() if hasattr(live, 'values') else live):
+        for window in ek.live_windows():
             if tabrow.same_path(getattr(window, 'tab_path', None), path):
                 window.out_of_tab()
                 tabs.close_tab(path)

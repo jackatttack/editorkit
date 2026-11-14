@@ -45,3 +45,34 @@ def clear_annotations():
     if editor is not None:
         editor.removeAllLineAnnotations()
         editor.textView().setNeedsDisplay()
+
+
+@_app.on_main
+def remove_annotation(line):
+    """Take away the note beside one line (1-based); every other note stays.
+    Returns True if that line had one.
+
+    Pythonista has no call that removes one note, so this keeps a copy of
+    the others, clears them all, and puts the others back."""
+    editor = _app.editor_view()
+    if editor is None:
+        return False
+    store = editor.lineAnnotationsByParagraphIndex()
+    if store is None:
+        return False
+    wanted = line - 1
+    others = []
+    found = False
+    for key in store.allKeys():
+        paragraph = int(key.intValue())
+        if paragraph == wanted:
+            found = True
+        else:
+            others.append((paragraph, store.objectForKey_(key).mutableCopy()))
+    if not found:
+        return False
+    editor.removeAllLineAnnotations()
+    for paragraph, data in others:
+        editor.setLineAnnotation_forParagraphAtIndex_(data, paragraph)
+    editor.textView().setNeedsDisplay()
+    return True

@@ -32,7 +32,7 @@ DOCUMENTS = os.path.expanduser('~/Documents')
 SITE_PACKAGES = os.path.join(DOCUMENTS, 'site-packages-3')
 HOME = os.path.join(DOCUMENTS, 'Toolbox')
 PACKAGES = ('editorkit', 'editorkit_toolbox')
-FOLDERS = ('examples', 'lessons')
+FOLDERS = ('examples', 'lessons', 'pythonista_lessons')
 LAUNCHER = 'Toolbox.py'
 UNINSTALLER = 'Uninstall.py'
 # Packages earlier releases installed and this one does not, by the files
@@ -41,8 +41,9 @@ RETIRED = {'codesense': ('assist.py', 'context.py', 'units.py', 'timing.py')}
 WRENCH_TITLE = 'Toolbox'
 WRENCH_ICON = 'Primaries_Home'
 WRENCH_COLOUR = '#F26EFF'
-LEARN_FOLDERS = ('examples', 'lessons')     # yours to change: updated with care
+LEARN_FOLDERS = ('examples', 'lessons', 'pythonista_lessons')   # yours to change: updated with care
 ORIGINALS = os.path.join(HOME, '.originals')   # the release's untouched copies (Learn's ♻️ Restore)
+FIRST_LESSON = os.path.join(HOME, 'lessons', '01_windows.py')   # opened after a first install
 SET_ASIDE = os.path.join(DOCUMENTS, '_to_delete')
 
 
@@ -143,7 +144,21 @@ def forget_modules():
             del sys.modules[name]
 
 
+def open_first_lesson():
+    """After a first install only: open Lesson 1 in the editor, ready to run.
+    Opens the file; never runs it."""
+    if not os.path.isfile(FIRST_LESSON):
+        return
+    try:
+        import editor
+    except ImportError:          # not inside Pythonista
+        return
+    editor.open_file(FIRST_LESSON, new_tab=True)
+    print('Lesson 1 is open: tap ▶ to start.')
+
+
 def main():
+    first_install = not os.path.isdir(ORIGINALS)   # no untouched copies yet: never installed
     root, temp = source_folder()
     try:
         os.makedirs(SITE_PACKAGES, exist_ok=True)
@@ -175,6 +190,8 @@ def main():
         print('  ✓ wrench menu: %s' % WRENCH_TITLE)
         print('\nToolbox %s is ready: tap the wrench, then %s.'
               % (getattr(editorkit, '__version__', ''), WRENCH_TITLE))
+        if first_install:
+            open_first_lesson()
     finally:
         if temp:
             shutil.rmtree(temp, ignore_errors=True)

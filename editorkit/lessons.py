@@ -26,6 +26,8 @@ against that copy, so steps use ek and friends as written.
 step_spans, line_range and step_page are pure (tests/smoke_lessons.py).
 """
 import ast
+import contextlib
+import io
 import inspect
 import os
 import sys
@@ -45,8 +47,12 @@ SIZE = (380, 380)                # the lesson window's first size
 OPEN_DELAY = 0.8                 # seconds for the editor to switch to the lesson's tab
 CLEANUP_PREFIX = 'lesson-'       # Done closes windows whose keys start with this
 RESULT_LIMIT = 600               # characters of a returned value shown
+CANCELLED_WORDS = 'Cancelled: a dialog raises KeyboardInterrupt when you tap Cancel.'
+RUNNING_WORDS = ('This step runs on a background thread, so dialogs and waits can show. '
+                 'What it returns appears here.')
 
-Step = namedtuple('Step', 'title function')
+Step = namedtuple('Step', 'title function background docs')
+Step.__new__.__defaults__ = (False, None)
 Span = namedtuple('Span', 'first last code')   # first line (decorator), last line, body
 
 
@@ -87,28 +93,53 @@ def paragraphs_html(doc):
     return ''.join('<p>%s</p>' % cards.text(part) for part in parts if part)
 
 
-def step_page(lesson_title, index, count, title, doc, code, outcome=None):
+def run_captured(function):
+    """Call function, catching what it prints: (outcome, printed). outcome
+    is None, ('value', text) or ('error', traceback text). A dialog's Cancel
+    (KeyboardInterrupt) is an outcome too, not a crash."""
+    printed = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(printed):
+            value = function()
+    except KeyboardInterrupt:
+        outcome = ('value', CANCELLED_WORDS)
+    except Exception:
+        outcome = ('error', traceback.format_exc(limit=4))
+    else:
+        outcome = None if value is None else ('value', str(value)[:RESULT_LIMIT])
+    return outcome, printed.getvalue()[:RESULT_LIMIT]
+
+
+def step_page(lesson_title, index, count, title, doc, code, outcome=None, printed='', docs=None):
     """The page for one step, in the docs' look (editorkit.web.prose): the
     title, the docstring, the step's code (with ⧉ Copy), then what happened.
-    outcome is None, ('value', text) or ('error', traceback text)."""
+    printed is what the step printed ('' for nothing); outcome is None,
+    ('value', text) or ('error', traceback text)."""
     page = cards.Page()
     page.heading('%s · step %d of %d' % (lesson_title, index + 1, count))
     blocks = [prose.heading(title, 2), prose.text(doc or '')]
     if code:
         blocks.append(prose.code(code))
+    if printed:
+        blocks.append(prose.callout('It printed', prose.code(printed, python=False)))
     if outcome is not None:
         kind, words = outcome
-        if kind == 'error':
+        if kind == 'running':
+            blocks.append(prose.note(RUNNING_WORDS, '⏳ Running'))
+        elif kind == 'error':
             blocks.append(prose.callout('⚠️ It raised an error',
                                         prose.code(words, python=False), kind='danger'))
         else:
             blocks.append(prose.note(words, 'It returned', 'tip'))
     page.prose(*blocks)
     last = index + 1 >= count
+    extras = [cards.Action('📜 Show me in the code', ('code',), look='quiet')]
+    if docs:
+        extras.append(cards.Action('📖 Read the docs', ('docs', docs), look='quiet'))
     page.buttons([[cards.Action('◀ Back', ('back',), look='quiet' if index == 0 else None),
                    cards.Action('▶ Try it', ('try',), look='go'),
                    cards.Action('Done ✓' if last else 'Next ▶', ('next',))],
-                  cards.Action('📜 Show me in the code', ('code',), look='quiet')])
+                  extras])
     return page
 
 
@@ -123,17 +154,39 @@ class Lesson:
         self.steps = []
         self.index = 0
         self.outcome = None
+        self.printed = ''
+        self.banner_line = None      # the line holding the lesson's own banner, if any
         self.spans = {}
         self.namespace = {}
         self.window = None
         self.board = None
+        self.job = None              # runs background steps (made on first use)
+        self.running_index = None    # the step a background run belongs to
 
-    def step(self, title):
-        """Decorator: the function is the next step, titled title."""
+    def step(self, title, background=False, docs=None):
+        """Decorator: the function is the next step, titled title.
+
+        background=True runs it on a background thread (an ek.Job) for
+        anything that waits or must not run on the main thread: dialogs,
+        input, sleeps, downloads. The card shows ⏳ until it returns.
+        docs='ui.Button' adds 📖 Read the docs, opening Explain's Docs tab
+        at that entry (when Toolbox is installed)."""
         def add(function):
-            self.steps.append(Step(title, function))
+            self.steps.append(Step(title, function, background, docs))
             return function
         return add
+
+    def show_view(self, view, title='View', key=None, **options):
+        """view (any ui.View, a scene.SceneView too) as the page of a lesson
+        window, so the code stays in sight beside it. Owned by the lesson, so
+        Done closes it. Returns the window.
+
+            lesson.show_view(button_demo, 'Buttons')
+        """
+        window = self.new_window(title, key=key, **options)
+        window.add_page(title, view)
+        window.show()
+        return window
 
     def new_window(self, title, key=None, **options):
         """A window for a step: owned by the lesson (folding the lesson takes
@@ -170,6 +223,7 @@ class Lesson:
     def go(self, index):
         self.index = index
         self.outcome = None
+        self.printed = ''
         self.draw()
         self.mark()
 
@@ -178,7 +232,7 @@ class Lesson:
         span = self.spans.get(step.function.__name__)
         page = step_page(self.title, self.index, len(self.steps), step.title,
                          inspect.getdoc(step.function), span.code if span else '',
-                         self.outcome)
+                         self.outcome, getattr(self, 'printed', ''), step.docs)
         self.board.show(page)
 
     def picked(self, item):
@@ -194,19 +248,58 @@ class Lesson:
             self.try_step()
         elif kind == 'code':
             self.mark()
+        elif kind == 'docs':
+            self.open_docs(item[1])
 
     def try_step(self):
-        """Run the step against the script's names, as they were at run()."""
-        original = self.steps[self.index].function
+        """Run the step against the script's names, as they were at run().
+        What it prints is caught for the step's page ("It printed"), since the
+        console is hidden behind the lesson. A background step runs on the
+        lesson's Job and its page shows ⏳ until it returns."""
+        step = self.steps[self.index]
+        if self.job is not None and self.job.running:
+            return                   # one background run at a time
+        original = step.function
         function = types.FunctionType(original.__code__, self.namespace, original.__name__,
                                       original.__defaults__, original.__closure__)
-        try:
-            value = function()
-        except Exception:
-            self.outcome = ('error', traceback.format_exc(limit=4))
-        else:
-            self.outcome = None if value is None else ('value', str(value)[:RESULT_LIMIT])
+        if not step.background:
+            self.show_result(run_captured(function))
+            return
+        self.running_index = self.index
+        self.outcome, self.printed = ('running', ''), ''
         self.draw()
+        self.background_job().start(function)
+
+    def background_job(self):
+        if self.job is None:
+            import editorkit as ek
+            self.job = ek.Job(self.window, lambda run, function: run_captured(function),
+                              on_done=self.background_done, on_error=self.background_failed)
+        return self.job
+
+    def background_done(self, result):
+        """A background step finished: show it if its step is still showing."""
+        if self.running_index == self.index:
+            self.show_result(result)
+
+    def background_failed(self, text):
+        if self.running_index == self.index:
+            self.show_result((('error', text), ''))
+
+    def show_result(self, result):
+        self.outcome, self.printed = result
+        self.draw()
+
+    def open_docs(self, entry):
+        """📖: Explain's Docs tab at entry. The docs come with Toolbox, so a
+        lesson run without it says so instead."""
+        try:
+            from editorkit_toolbox import docs
+        except ImportError:
+            self.show_result((('value', 'Read the docs for %s in Pythonista\'s own help.' % entry),
+                              ''))
+            return
+        docs.open_docs([entry])
 
     # --- In the editor ----------------------------------------------------------
 
@@ -226,18 +319,28 @@ class Lesson:
 
     def mark_now(self, span):
         import editorkit as ek
-        ek.clear_annotations()
+        self.clear_banner()
+        self.banner_line = span.first
         ek.annotate(span.first, 'Step %d of %d: %s' % (
             self.index + 1, len(self.steps), self.steps[self.index].title), style='note')
         start, end = line_range(ek.text(), span.first, span.last)
         ek.select(start, end, scroll=False)
         ek.reveal(start)
 
+    def clear_banner(self):
+        """Take away the lesson's own banner: only that note, so the reader's
+        notes stay, and only while the lesson's file is the one showing."""
+        import editorkit as ek
+        line, self.banner_line = self.banner_line, None
+        if line is None:
+            return
+        if os.path.realpath(ek.current_file() or '') == os.path.realpath(self.path):
+            ek.remove_annotation(line)
+
     def closed(self, *_args):
         """Done or ✕: clear the banner, close the windows the lesson opened."""
         import editorkit as ek
-        ek.clear_annotations()
-        live = ek.live_windows()
-        for window in list(live.values() if hasattr(live, 'values') else live):
+        self.clear_banner()
+        for window in ek.live_windows():
             if str(getattr(window, 'key', '')).startswith(CLEANUP_PREFIX):
                 window.close()

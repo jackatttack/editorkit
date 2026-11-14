@@ -55,9 +55,8 @@ def buttons():
 @lesson.step('Folding away')
 def folding():
     """– folds a window away. Window(owner=app) makes a window one of an
-    app's pieces: it folds into the app's box, a row of chips under the
-    app's header. With no owner it goes to the Toolbox's tray when that is
-    running, else to its own pin, so nothing is ever lost.
+    app's pieces, and a folded piece waits in the app's box: the row of
+    chips under its header.
 
     Try it, then fold the two pieces with –: they gather in a box at the top
     of this lesson. Tap a chip to bring one back; hold one to close it. Fold

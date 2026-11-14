@@ -9,8 +9,12 @@ time. Earlier runs stay above as history (this session); 📋 copies a card,
 only the selected lines when there is a selection. Script windows
 (editorkit_toolbox.scriptview) and Scissors run here too. ↻ runs the last thing again
 (a whole script as it stands now). Output streams in: stdout plain, stderr
-tinted. A traceback shows each frame's line; tap one to open the file
-there. ■ stops the run (pure-Python loops; a long C call ends first).
+tinted. A failed run ends in a red card titled with the error
+(traceback_card): your own frames first, failing line on top (tap one to
+open the file there), then Go to line, ❓ Explain and ⧉ Copy; the failing
+line also gets a red note in the editor until the next run. A new run
+folds the cards above it. ■ stops the run (pure-Python loops; a long C
+call ends first).
 
 Code the Console runs can call show(thing) with no import: a picture, a
 figure, a table (a list of dicts), a dict, rows, a file path, HTML or text
@@ -29,11 +33,11 @@ import builtins
 import os
 
 import editorkit as ek
-from editorkit import files, native
+from editorkit import clip, files, native
 from editorkit.web import codeview
 from editorkit.web.tiles import Feed
 
-from . import runner
+from . import runner, traceback_card
 
 
 # --- Settings -------------------------------------------------------------
@@ -52,11 +56,13 @@ READY_NOTE = '▶ runs the open script, or only the selected lines. ↻ runs the
 KIND_FOR_STREAM = {'out': 'plain', 'err': 'error'}
 
 # The last line of a run, by its status.
-STATUS_WORDS = {'done': 'Finished in %.2f s',
+STATUS_WORDS = {'done': '%.2f s',
                 'error': 'Failed after %.2f s',
                 'stopped': 'Stopped after %.2f s'}
 
 WHOLE_SCRIPT = 'whole script'    # runner.pick_code's label for the whole file
+FOLD_EARLIER_RUNS = True         # a new run folds the cards above it to their headers
+EXPLAIN_AFTER_SECONDS = 0.8      # ❓ Explain: let the file open and the cursor land first
 
 
 Row = codeview.Row
@@ -89,11 +95,12 @@ class ConsoleTool:
         self.hidden = 0              # output rows past MAX_LINES, counted only
         self.stop_wanted = False
         self.again = None            # the last run's plan, for ↻
+        self.error_mark = None       # (path, line) of the red note a failed run left
         self.opener = ek.Opener(window)
         self.job = ek.Job(window, self.work, on_items=self.lines_arrived,
                           on_done=self.finished, on_error=self.crashed)
         # Every run is a card; earlier runs stay above as history.
-        self.feed = Feed(window, on_pick=self.picked)
+        self.feed = Feed(window, on_pick=self.picked, extra_css=traceback_card.CSS)
         window.add_page('Output', self.feed)
         window.add_button(RUN_ICON, lambda *_: self.run(), 'run')
         window.add_button(AGAIN_ICON, lambda *_: self.run_again(), 'again')
@@ -155,8 +162,11 @@ class ConsoleTool:
         self.again = plan
         self.stop_wanted = False
         self.shown = self.hidden = 0
+        self.clear_error_mark()
+        if FOLD_EARLIER_RUNS:
+            self.feed.fold_all()
         name = os.path.basename(path) if path else runner.short_name(path)
-        self.entry = self.feed.add('%s · %s' % (name, label), status='running')
+        self.entry = self.feed.add(name, status='running', detail=label)
         self.job.start(source, path)
 
     def work(self, run, source, path):
@@ -208,6 +218,9 @@ class ConsoleTool:
             rows.append(Row('… %d more lines not shown' % self.hidden, 'note'))
         rows.extend(result.rows)
         self.add_rows(rows)
+        if result.problem is not None and self.entry is not None:
+            self.entry.append(traceback_card.problem_section(result.problem))
+            self.mark_error(result.problem)
         if self.entry is not None:
             words = STATUS_WORDS.get(result.status, '%.2f s') % result.seconds
             self.entry.finish(result.status, words)
@@ -233,12 +246,31 @@ class ConsoleTool:
         self.feed.clear()
         self.entry = None
 
+    def mark_error(self, problem):
+        """A red note on the failing line, when that file is the open one."""
+        frame = traceback_card.failing_frame(problem)
+        if frame is None or not frame.path or not frame.line:
+            return
+        if same_file(ek.current_file(), frame.path):
+            ek.annotate(frame.line, problem.title, style='error')
+            self.error_mark = (frame.path, frame.line)
+
+    def clear_error_mark(self):
+        """Take away the last failed run's note (only that one)."""
+        mark, self.error_mark = self.error_mark, None
+        if mark is not None and same_file(ek.current_file(), mark[0]):
+            ek.remove_annotation(mark[1])
+
     # --- Tapping -----------------------------------------------------------
 
     def picked(self, item):
         """A tapped thing that points at a file: a traceback frame (path,
         line), a Search hit (opened at the match), a name card, a ViewHit,
-        or a Scissors line. Opens it in the editor there."""
+        or a Scissors line. Opens it in the editor there. A traceback card's
+        buttons hand back traceback_card.Actions."""
+        if isinstance(item, traceback_card.Action):
+            self.act(item)
+            return
         target = getattr(item, 'hit', item)                 # ViewHit -> its Hit
         if isinstance(target, tuple) and len(target) == 2 and isinstance(target[0], str):
             path, line = target
@@ -258,6 +290,16 @@ class ConsoleTool:
         else:
             self.opener.go(path)
 
+    def act(self, action):
+        """A traceback card's button: copy the traceback, go to the failing
+        line, or go there and open Explain on it."""
+        if action.kind == 'copy':
+            clip.set_text(action.text)
+            return
+        self.opener.go(action.path, action.line)
+        if action.kind == 'explain':
+            self.window.after(EXPLAIN_AFTER_SECONDS, lambda *_args: open_explain())
+
 
 # --- Opening --------------------------------------------------------------
 
@@ -274,8 +316,7 @@ def open_console():
 def shared():
     """The Console that is already live (shown or in the tray), else a new
     one. Everything runs through this one window."""
-    live = ek.live_windows()
-    for window in (live.values() if hasattr(live, 'values') else live):
+    for window in ek.live_windows():
         tool = getattr(window, 'console_tool', None)
         if tool is not None:
             return tool
@@ -295,6 +336,11 @@ def run_part(path, start, end):
     tool = shared()
     tool.window.show()
     tool.run_part(path, start, end)
+
+
+def open_explain():
+    from . import explain
+    return explain.open_explain()
 
 
 def show(thing, title=None):
