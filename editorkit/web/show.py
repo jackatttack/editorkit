@@ -43,3 +43,14 @@ def page_for_html(html, window):
     tile = Cards(window, extra_css=FRAGMENT_CSS)
     tile.set_html(html)
     return tile
+
+
+def page_for_cards(thing, window, on_pick=None):
+    """A Cards tile showing a cards.Page (ek.show's hook), or None when
+    thing is not one."""
+    from . import cards
+    if not isinstance(thing, cards.Page):
+        return None
+    tile = Cards(window, on_pick=on_pick)
+    tile.show(thing)
+    return tile

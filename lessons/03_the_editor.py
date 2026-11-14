@@ -90,7 +90,7 @@ def clean_up():
     ek.clear_annotations()
     ek.clear_highlights()
     ek.remove_toolbar_button('lesson')
-    ek.reset_keyboard()
+    ek.clear_keyboard()
     if 'watch' in state:
         ek.remove_listener(state.pop('watch'))
     return 'Everything is back to normal.'

@@ -34,7 +34,7 @@ words) or escape(). Pure Python (no ui): tests/smoke_cards.py checks it.
 import re
 from collections import namedtuple
 
-from . import codeview
+from . import codeview, prose
 
 
 # --- Settings -------------------------------------------------------------
@@ -128,6 +128,11 @@ class Page:
 
     def note(self, words):
         self.parts.append('<div class="ek-note">%s</div>' % escape(words))
+
+    def prose(self, *blocks):
+        """A full-width article in the docs' look: blocks from editorkit.web.prose
+        (heading, text, code, signature, note, terms, member)."""
+        self.parts.append(prose.article(*blocks))
 
     def chips(self, chips):
         out = ['<div class="ek-chips">']
@@ -233,3 +238,6 @@ CSS = """
 .ek-face-caption { font: 12px -apple-system, sans-serif; opacity: 0.65; min-width: 0; }
 .ek-dim { opacity: 0.45; }
 """
+
+# Prose (the docs' look) shows on every card page, as a page or a card body.
+CSS += prose.CSS

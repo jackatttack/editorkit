@@ -146,6 +146,25 @@ def visible_lines():
             _line_at(view, source, CGPoint(0, max(top, bottom))))
 
 
+def lines_in(source, first, last):
+    """(start, end) character indices of lines first..last (1-based,
+    inclusive) in source. Pure: the rule behind line_range."""
+    lines = source.split('\n')
+    start = sum(len(line) + 1 for line in lines[:first - 1])
+    end = sum(len(line) + 1 for line in lines[:last]) - 1
+    return start, max(start, min(end, len(source)))
+
+
+def line_range(first, last=None):
+    """(start, end) character indices of lines first..last (1-based,
+    inclusive; last defaults to first) in the open script, ready for
+    select, replace and reveal:
+
+        ek.select(*ek.line_range(12, 14))
+    """
+    return lines_in(text(), first, first if last is None else last)
+
+
 def _line_at(view, source, point):
     """The 1-based line of source at point, in the text view's coordinates."""
     position = view.closestPositionToPoint_(point)

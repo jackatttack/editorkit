@@ -1,6 +1,6 @@
 """📦 Packages: find, inspect, install and remove Python packages from PyPI.
 
-The engine is Pipista's, vendored in deck/packages (standard library only):
+The engine is Pipista's, vendored in editorkit_toolbox/packages (standard library only):
 downloads are checked and verified, archives are unpacked safely, nothing
 runs setup.py, and a dependency plan shows everything that will happen
 before anything changes. Toolbox keeps its own records in

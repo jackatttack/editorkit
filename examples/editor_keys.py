@@ -11,4 +11,4 @@ ek.keyboard(
     second_row=['def ', 'self', 'return ', 'if ', 'for ', ' in ', 'None',
                 ('True', 'False'), 'print(', 'import '],
 )
-print('Tap into a script: two rows. ek.reset_keyboard() puts it back.')
+print('Tap into a script: two rows. ek.clear_keyboard() puts it back.')

@@ -9,7 +9,7 @@ started = time.time()
 
 def report(event, started=started, clock=time.time, ek=ek):
     if clock() - started > 60:
-        ek.stop_events()
+        ek.clear_listeners()
         print('editorkit: stopped watching')
         return
     if event['kind'] != 'text':

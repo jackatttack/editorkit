@@ -7,7 +7,7 @@ time. Earlier runs stay above as history (this session); 📋 copies a card,
 
 ▶ runs the open script as the editor holds it (unsaved edits included), or
 only the selected lines when there is a selection. Script windows
-(deck.scriptview) and Scissors run here too. ↻ runs the last thing again
+(editorkit_toolbox.scriptview) and Scissors run here too. ↻ runs the last thing again
 (a whole script as it stands now). Output streams in: stdout plain, stderr
 tinted. A traceback shows each frame's line; tap one to open the file
 there. ■ stops the run (pure-Python loops; a long C call ends first).
@@ -17,7 +17,7 @@ figure, a table (a list of dicts), a dict, rows, a file path, HTML or text
 is drawn in that run's card, in order with what it prints (editorkit.render).
 Any tool can post a card of its own: console.show(thing, title).
 
-The code runs on an ek.Job thread through deck.runner, which never touches
+The code runs on an ek.Job thread through editorkit_toolbox.runner, which never touches
 ui; output and show() arrive on the window's clock.
 
     from editorkit_toolbox import console
@@ -29,7 +29,7 @@ import builtins
 import os
 
 import editorkit as ek
-from editorkit import files, tiles
+from editorkit import files, native
 from editorkit.web import codeview
 from editorkit.web.tiles import Feed
 
@@ -40,7 +40,7 @@ from . import runner
 
 TITLE = 'Console'
 EMOJI = '📟'
-WINDOW_KEY = 'deck.console'
+WINDOW_KEY = 'editorkit_toolbox.console'
 MAX_LINES = 2000                 # output rows shown per run; the rest are counted
 RUN_ICON = '▶'
 AGAIN_ICON = '↻'

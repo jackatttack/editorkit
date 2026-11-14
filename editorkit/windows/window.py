@@ -63,15 +63,7 @@ class Window(Homes, Moves, Gestures):
                  closable=True, dockable=True, console=True, pin_text=None, on_close=None,
                  dock_button=False, home=None, keyboard_row='hide',
                  backdrop='solid', backdrop_alpha=look.BACKDROP_ALPHA, inset_code=None,
-                 dock_host='editor', minimise_to=None, tray_home=False, owner=None,
-                 keyboard=None, keyboard_button=None, keyboard_host=None):
-        # Names from before ROADMAP D (2026-11-10) still work.
-        if keyboard is not None:
-            dockable = keyboard
-        if keyboard_button is not None:
-            dock_button = keyboard_button
-        if keyboard_host is not None:
-            dock_host = keyboard_host
+                 dock_host='editor', minimise_to=None, tray_home=False, owner=None):
         home = self._current_name(home)
         self.title = title
         self.emoji = emoji
@@ -176,6 +168,7 @@ class Window(Homes, Moves, Gestures):
         return self
 
     def page_names(self):
+        """The pages' names, in the order their tabs show."""
         return [entry[0] for entry in self.pages]
 
     def restyle(self):
@@ -240,7 +233,7 @@ class Window(Homes, Moves, Gestures):
     def _editor_changed(self, change):
         if self.place in ('hidden', 'closed'):
             return
-        self.emit(change['kind'], change['old'], change['new'])
+        self._emit(change['kind'], change['old'], change['new'])
 
     def every(self, callback):
         """callback(now) on every beat of the window's clock while it is up
@@ -303,6 +296,7 @@ class Window(Homes, Moves, Gestures):
         return self
 
     def remove_button(self, name):
+        """Take away the header button add_button made with this name."""
         self.app_buttons = [spec for spec in self.app_buttons if spec['name'] != name]
         self._sync_buttons()
         return self
@@ -330,6 +324,7 @@ class Window(Homes, Moves, Gestures):
         return self
 
     def close_sheet(self):
+        """Take away the sheet show_sheet laid over the page, if there is one."""
         return self.show_sheet(None)
 
     @_app.on_main
@@ -466,10 +461,6 @@ class Window(Homes, Moves, Gestures):
                 self._pin_to_dock()
         return self
 
-    def to_keyboard(self):
-        """Old name for to_dock() (before ROADMAP D)."""
-        return self.to_dock()
-
     def tray(self):
         """Windows waiting in the tray, most recently minimised first (for a
         tray home's bar)."""
@@ -518,7 +509,7 @@ class Window(Homes, Moves, Gestures):
         home and on windows with an accessory of their own."""
         if self.tray_home or self.manager is None:
             return
-        from ..tiles.box import Box
+        from ..native.box import Box
         current = self.accessory[0] if self.accessory is not None else None
         if current is not None and current is not self.box_view:
             return
@@ -593,10 +584,11 @@ class Window(Homes, Moves, Gestures):
         if manager.windows.get(self.key) is self:
             del manager.windows[self.key]
         manager.tray_remove(self)
-        self.emit('close')
+        self._emit('close')
 
     @_app.on_main
     def set_page(self, name):
+        """Show the page called name (one add_page made); fires 'page'."""
         if name not in self.page_names() or name == self.page:
             return
         self._page_hook('page_hidden')
@@ -606,10 +598,11 @@ class Window(Homes, Moves, Gestures):
             self._ensure_page()
         if self.panel is not None:
             self.panel.set_tabs(self.page_names(), self.page)
-        self.emit('page', name)
+        self._emit('page', name)
 
     @_app.on_main
     def set_title(self, text):
+        """Change the title in the header (the full-screen header follows)."""
         self.title = text
         if getattr(self, 'full_sheet', None) is not None:
             self.full_sheet.refresh()    # full screen: the sheet's header follows
@@ -649,10 +642,11 @@ class Window(Homes, Moves, Gestures):
 
     # ==== The clock ====
 
-    def tick(self, now):
+    def _tick(self, now):
+        """One beat of this window, from the Manager's clock."""
         if self.place != self.last_place:
             old, self.last_place = self.last_place, self.place
-            self.emit('place', old, self.place)
+            self._emit('place', old, self.place)
         if self.place in ('hidden', 'closed'):
             return
         if now >= self.next_page_tick:
@@ -675,7 +669,7 @@ class Window(Homes, Moves, Gestures):
                 keyboard.give_back(self)
                 self.place = 'pin'
                 self._fade_pin_in()
-                self.emit('minimise')
+                self._emit('minimise')
         if (self.place == 'pin' and self.pin_home == 'editor' and not pin.dragging
                 and self.listeners['under']):
             self._look_under_pin()
@@ -694,10 +688,10 @@ class Window(Homes, Moves, Gestures):
                     self.tick_failures.add(id(beat))
                     print('editorkit windows: clock %r failed: %r' % (beat.callback, error))
 
-    def is_dragging(self):
+    def _is_dragging(self):
         return self.pin is not None and (self.pin.dragging or self.grabbing is not None)
 
-    def emit(self, event, *values):
+    def _emit(self, event, *values):
         for callback in list(self.listeners.get(event, ())):
             try:
                 callback(self, *values)
@@ -767,7 +761,7 @@ class Window(Homes, Moves, Gestures):
         if manager.windows.get(self.key) is self:
             del manager.windows[self.key]
         manager.tray_remove(self)
-        self.emit('close')
+        self._emit('close')
 
     # ==== Pages ====
 
@@ -817,11 +811,18 @@ def live_windows():
     return list(manager.windows.values()) if manager is not None else []
 
 
-def show(thing, title=None, key=None, **options):
-    """One line: a window with one page showing thing (anything a page takes).
+def show(thing, title=None, key=None, on_pick=None, **options):
+    """One line: a window with one page showing thing (anything a page
+    takes, a cards.Page included). With a cards.Page, on_pick(item) gets the
+    item of whatever card, chip or button is tapped:
+
+        ek.show(page, title='Colours', on_pick=chosen)
+
     Showing again under the same key (the title, by default) swaps the
     content in place and leaves the window where it is, so show() can run
     in a loop."""
+    if on_pick is not None:
+        thing = content.Picking(thing, on_pick)
     title = title or content.title_for(thing)
     key = key or title
     for window in live_windows():
@@ -833,7 +834,11 @@ def show(thing, title=None, key=None, **options):
 
 
 @_app.on_main
-def close_all():
+def close_all(at_once=False):
+    """Close every window. at_once=True removes them with no motion, and
+    the windows' clock too: use it before reloading editorkit's modules."""
+    if at_once:
+        return stop()
     for window in live_windows():
         window.close()
 

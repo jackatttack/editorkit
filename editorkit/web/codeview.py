@@ -263,6 +263,12 @@ class SectionIds:
         return go
 
 
+# A tap on an element whose data-go is COPY_GO copies its code block (prose
+# code blocks' ⧉ Copy): the page sends LINK_SCHEME + COPY_PATH + the text.
+COPY_GO = 'ekcopy'
+COPY_PATH = 'copy/'
+
+
 def go_attribute(go):
     return ' data-go="%s"' % go if go is not None else ''
 
@@ -423,7 +429,15 @@ function goTarget(node) {
     }
     return node || null;
 }
+function copyBlock(button) {
+    var code = button.parentNode.querySelector('.ek-block-code');
+    window.location.href = SCHEME + 'copy/' + encodeURIComponent(code ? code.innerText : '');
+    var label = button.textContent;
+    button.textContent = 'Copied';
+    setTimeout(function () { button.textContent = label; }, 1200);
+}
 function sendGo(target) {
+    if (target.getAttribute('data-go') === 'ekcopy') { copyBlock(target); return; }
     window.ekLastGo = target.getAttribute('data-go');
     clearCurrent();
     markCurrent(target);

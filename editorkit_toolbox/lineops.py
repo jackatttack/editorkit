@@ -5,7 +5,7 @@ Every operation takes the script's text and a 1-based, inclusive line range
 are afterwards, so the band stays on them and a second press carries on
 (↑ ↑ ↑ walks a block up three lines).
 
-No ui and no Pythonista imports: apps/deck/tests/smoke_lineops.py checks it
+No ui and no Pythonista imports: tests/smoke_lineops.py checks it
 headless.
 """
 

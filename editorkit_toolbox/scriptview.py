@@ -2,7 +2,7 @@
 
 📜 opens one for the open script. The page is the whole file, numbered and
 coloured; tap a line to open the file there. ▶ runs it in the shared
-Console (deck.console), so every script window's output comes to the one
+Console (editorkit_toolbox.console), so every script window's output comes to the one
 Console. ✂️ brings Scissors up in the keyboard's place for this file, its
 range tinted here; ⚡ opens Quick for it. Each file has its own window
 (keyed by its path), so several can be open; minimised they wait in the
@@ -26,7 +26,7 @@ import time
 
 import ui
 import editorkit as ek
-from editorkit import tiles
+from editorkit import native
 from editorkit.web import codeview
 from editorkit.web import tiles as web_tiles
 
@@ -36,7 +36,7 @@ from . import console, runner
 # --- Settings -------------------------------------------------------------
 
 EMOJI = '📜'
-KEY_PREFIX = 'deck.script:'      # + the file's real path: one window per file
+KEY_PREFIX = 'editorkit_toolbox.script:'      # + the file's real path: one window per file
 RUN_ICON = '▶'
 SCISSORS_ICON = '✂️'
 QUICK_ICON = '⚡'

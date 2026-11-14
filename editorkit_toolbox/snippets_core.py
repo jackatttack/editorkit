@@ -1,10 +1,8 @@
-# Vendored copy of projects/keyboard/snippets/snippets_core.py (2026-11-11,
-# RELEASE.txt 1.1), so the deck needs nothing outside its own folder. The
-# snippet keyboard keeps its own copy: change both together, or neither.
+
 """Snippets core: the library, clipboard parsing and live fields.
 
 Pure Python with no Pythonista imports, so every rule here can be tested
-through Forge without the keyboard. The keyboard UI builds on this module.
+without any UI. Snippets (snippets.py) builds on this module.
 
 Storage promises:
 - Writes are atomic: a crash mid-save leaves the previous file intact.

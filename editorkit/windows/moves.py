@@ -103,10 +103,10 @@ class Moves(object):
                                       look.CONTENT_FADE_SECONDS))
         if home == 'console':
             self.place = 'console'
-            self.emit('console')
+            self._emit('console')
         else:
             self.place = 'panel'
-            self.emit('open')
+            self._emit('open')
 
     def _panel_to_pin(self):
         """The page fades, then the panel shrinks into a pin where its emoji is,
@@ -137,7 +137,7 @@ class Moves(object):
         self._book(look.CONTENT_FADE_SECONDS, 'shrink to pin', shrink)
         self._book(look.CONTENT_FADE_SECONDS + look.SHRINK_SECONDS, 'panel away', finish)
         self.place = 'pin'
-        self.emit('minimise')
+        self._emit('minimise')
 
     def _panel_to_dock(self):
         """A picture of the panel drops while the real one rises from below."""
@@ -163,7 +163,7 @@ class Moves(object):
         ui.animate(drop, look.HANDOFF_SECONDS)
         self._book(look.HANDOFF_SECONDS, 'clear picture', self._clear_picture)
         self.place = 'dock'
-        self.emit('dock')
+        self._emit('dock')
 
     def _pin_to_dock(self):
         """Straight from the pin into the keyboard's place: the pin fades while
@@ -187,7 +187,7 @@ class Moves(object):
         pin.touch_enabled = False
         ui.animate(lambda: setattr(pin, 'alpha', 0.0), look.PIN_FADE_SECONDS)
         self.place = 'dock'
-        self.emit('dock')
+        self._emit('dock')
 
     def _dock_to_panel(self):
         """The keyboard's place slides away while a picture rises over the code;
@@ -206,7 +206,7 @@ class Moves(object):
         self._book(look.HANDOFF_SECONDS + look.GHOST_FADE_SECONDS, 'clear picture',
                    self._clear_picture)
         self.place = 'panel'
-        self.emit('open')
+        self._emit('open')
 
     def _dock_to_pin(self):
         """The keyboard's place slides away while a picture shrinks into the pin."""
@@ -224,7 +224,7 @@ class Moves(object):
         self._book(look.HANDOFF_SECONDS * 0.6, 'pin back', self._fade_pin_in)
         self._book(look.HANDOFF_SECONDS, 'clear picture', self._clear_picture)
         self.place = 'pin'
-        self.emit('minimise')
+        self._emit('minimise')
 
     def _panel_to_console(self):
         """A picture flies from over the code into the console in step with the
@@ -250,7 +250,7 @@ class Moves(object):
         ui.animate(lambda: setattr(ghost, 'frame', target), look.CONSOLE_SLIDE_SECONDS)
         self._book(look.CONSOLE_SLIDE_SECONDS, 'land in the console', lambda: self._land('root'))
         self.place = 'console'
-        self.emit('console')
+        self._emit('console')
 
     def _console_to_panel(self):
         """The console slides away while a picture flies back over the code;
@@ -272,7 +272,7 @@ class Moves(object):
         ui.animate(lambda: setattr(ghost, 'frame', target), look.CONSOLE_SLIDE_SECONDS)
         self._book(look.CONSOLE_SLIDE_SECONDS, 'land over the code', lambda: self._land('root'))
         self.place = 'panel'
-        self.emit('open')
+        self._emit('open')
 
     def _console_to_pin(self):
         """From the console, the panel folds into a pin that stays in the console."""
@@ -316,7 +316,7 @@ class Moves(object):
         pin.alpha = 0.0
         places.take_away(pin)
         self.place = 'tray'
-        self.emit('minimise')
+        self._emit('minimise')
         self.manager.tray_add(self)
 
     def _panel_to_tray(self):
@@ -449,7 +449,7 @@ class Moves(object):
         places.take_away(pin)
         self.place = 'tab'
         self.tab_showing = False
-        self.emit('minimise')
+        self._emit('minimise')
 
     def _panel_to_tab(self, landing=None):
         """The page fades, then the panel shrinks up toward the tab row and

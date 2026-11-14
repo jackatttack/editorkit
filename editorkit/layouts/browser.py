@@ -24,7 +24,7 @@ pieces itself (the web fence, 2026-11-12). With no preview the page is the
 Folders alone. Nothing in Toolbox uses this layout today (Files shows
 folders and a Pair).
 """
-from .. import tiles
+from .. import native
 from .accessory import Accessory
 
 
@@ -34,12 +34,12 @@ class Browser:
         self.window = window
         self.on_file = on_file
         self.folder = None
-        self.path = tiles.Path(window, on_pick=self.show)
-        self.folders = tiles.Folders(window, on_pick=self.picked)
+        self.path = native.Path(window, on_pick=self.show)
+        self.folders = native.Folders(window, on_pick=self.picked)
         self.code = preview          # the name kept from when the layout built it
-        self.split = (tiles.Split(window, self.folders, preview, ratio=ratio)
+        self.split = (native.Split(window, self.folders, preview, ratio=ratio)
                       if preview is not None else None)
-        self.controls = tiles.Controls(window, intro=help_intro) if controls else None
+        self.controls = native.Controls(window, intro=help_intro) if controls else None
         self.accessory = Accessory(window, [self.path], self.controls)
         window.add_page(page, self.split if self.split is not None else self.folders)
 

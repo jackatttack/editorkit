@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.4.0",
- "staged": "2026-11-14 00:00",
+ "version": "0.5.0",
+ "staged": "2026-11-14 15:08",
  "files": [
   [
    "LICENSE",
@@ -10,43 +10,11 @@
   ],
   [
    "README.md",
-   1995
-  ],
-  [
-   "codesense/README.md",
-   1563
-  ],
-  [
-   "codesense/__init__.py",
-   1124
-  ],
-  [
-   "codesense/assist.py",
-   8213
-  ],
-  [
-   "codesense/context.py",
-   11796
-  ],
-  [
-   "codesense/index.py",
-   11411
-  ],
-  [
-   "codesense/suggest.py",
-   3037
-  ],
-  [
-   "codesense/timing.py",
-   2116
-  ],
-  [
-   "codesense/units.py",
-   1191
+   7414
   ],
   [
    "editorkit/__init__.py",
-   2656
+   2496
   ],
   [
    "editorkit/_app.py",
@@ -69,8 +37,40 @@
    569
   ],
   [
+   "editorkit/codesense/README.md",
+   1563
+  ],
+  [
+   "editorkit/codesense/__init__.py",
+   1124
+  ],
+  [
+   "editorkit/codesense/assist.py",
+   8213
+  ],
+  [
+   "editorkit/codesense/context.py",
+   11796
+  ],
+  [
+   "editorkit/codesense/index.py",
+   11411
+  ],
+  [
+   "editorkit/codesense/suggest.py",
+   3037
+  ],
+  [
+   "editorkit/codesense/timing.py",
+   2116
+  ],
+  [
+   "editorkit/codesense/units.py",
+   1191
+  ],
+  [
    "editorkit/events.py",
-   3460
+   3464
   ],
   [
    "editorkit/fileops.py",
@@ -102,31 +102,95 @@
   ],
   [
    "editorkit/layouts/accessory.py",
-   1729
+   1733
   ],
   [
    "editorkit/layouts/browser.py",
-   2993
+   2998
   ],
   [
    "editorkit/layouts/folder_picker.py",
-   4254
+   4259
   ],
   [
    "editorkit/layouts/prompt.py",
-   2446
+   2452
   ],
   [
    "editorkit/layouts/query_list.py",
-   8388
+   8393
   ],
   [
    "editorkit/lessons.py",
-   9044
+   9644
   ],
   [
    "editorkit/matches.py",
    2830
+  ],
+  [
+   "editorkit/native/__init__.py",
+   1014
+  ],
+  [
+   "editorkit/native/bar.py",
+   1450
+  ],
+  [
+   "editorkit/native/base.py",
+   2580
+  ],
+  [
+   "editorkit/native/box.py",
+   4456
+  ],
+  [
+   "editorkit/native/card.py",
+   1737
+  ],
+  [
+   "editorkit/native/chips.py",
+   2340
+  ],
+  [
+   "editorkit/native/column.py",
+   1621
+  ],
+  [
+   "editorkit/native/controls.py",
+   3649
+  ],
+  [
+   "editorkit/native/field.py",
+   5163
+  ],
+  [
+   "editorkit/native/folders.py",
+   3368
+  ],
+  [
+   "editorkit/native/grid.py",
+   4830
+  ],
+  [
+   "editorkit/native/keypad.py",
+   3107
+  ],
+  [
+   "editorkit/native/path.py",
+   3127
+  ],
+  [
+   "editorkit/native/results.py",
+   4393
+  ],
+  [
+   "editorkit/native/split.py",
+   1059
+  ],
+  [
+   "editorkit/native/textbox.py",
+   11130
   ],
   [
    "editorkit/opener.py",
@@ -138,7 +202,7 @@
   ],
   [
    "editorkit/script.py",
-   7337
+   8033
   ],
   [
    "editorkit/sources.py",
@@ -165,68 +229,8 @@
    6517
   ],
   [
-   "editorkit/tiles/__init__.py",
-   1376
-  ],
-  [
-   "editorkit/tiles/bar.py",
-   1450
-  ],
-  [
-   "editorkit/tiles/base.py",
-   2580
-  ],
-  [
-   "editorkit/tiles/box.py",
-   4456
-  ],
-  [
-   "editorkit/tiles/card.py",
-   1737
-  ],
-  [
-   "editorkit/tiles/chips.py",
-   2340
-  ],
-  [
-   "editorkit/tiles/column.py",
-   1621
-  ],
-  [
-   "editorkit/tiles/controls.py",
-   3649
-  ],
-  [
-   "editorkit/tiles/field.py",
-   5163
-  ],
-  [
-   "editorkit/tiles/folders.py",
-   3368
-  ],
-  [
-   "editorkit/tiles/grid.py",
-   4830
-  ],
-  [
-   "editorkit/tiles/keypad.py",
-   3107
-  ],
-  [
-   "editorkit/tiles/path.py",
-   3127
-  ],
-  [
-   "editorkit/tiles/results.py",
-   4393
-  ],
-  [
-   "editorkit/tiles/split.py",
-   1059
-  ],
-  [
-   "editorkit/tiles/textbox.py",
-   11130
+   "editorkit/tool.py",
+   2098
   ],
   [
    "editorkit/toolbar.py",
@@ -238,11 +242,11 @@
   ],
   [
    "editorkit/views.py",
-   3061
+   3066
   ],
   [
    "editorkit/walkthrough.py",
-   9029
+   9032
   ],
   [
    "editorkit/web/__init__.py",
@@ -250,11 +254,15 @@
   ],
   [
    "editorkit/web/cards.py",
-   11275
+   11607
   ],
   [
    "editorkit/web/codeview.py",
-   26662
+   27269
+  ],
+  [
+   "editorkit/web/prose.py",
+   11211
   ],
   [
    "editorkit/web/render.py",
@@ -262,7 +270,7 @@
   ],
   [
    "editorkit/web/show.py",
-   1620
+   1934
   ],
   [
    "editorkit/web/tapeview.py",
@@ -274,7 +282,7 @@
   ],
   [
    "editorkit/web/tiles/card.py",
-   2315
+   2376
   ],
   [
    "editorkit/web/tiles/cards.py",
@@ -282,7 +290,7 @@
   ],
   [
    "editorkit/web/tiles/code.py",
-   15957
+   16447
   ],
   [
    "editorkit/web/tiles/feed.py",
@@ -290,11 +298,11 @@
   ],
   [
    "editorkit/web/tiles/keypad.py",
-   3648
+   3649
   ],
   [
    "editorkit/web/tiles/tape.py",
-   2507
+   2508
   ],
   [
    "editorkit/windows/__init__.py",
@@ -302,7 +310,7 @@
   ],
   [
    "editorkit/windows/content.py",
-   4787
+   5550
   ],
   [
    "editorkit/windows/fullsheet.py",
@@ -310,7 +318,7 @@
   ],
   [
    "editorkit/windows/gestures.py",
-   15389
+   15390
   ],
   [
    "editorkit/windows/holdmove.py",
@@ -318,7 +326,7 @@
   ],
   [
    "editorkit/windows/homes.py",
-   16668
+   16522
   ],
   [
    "editorkit/windows/look.py",
@@ -326,7 +334,7 @@
   ],
   [
    "editorkit/windows/manager.py",
-   15374
+   15377
   ],
   [
    "editorkit/windows/motion.py",
@@ -334,7 +342,7 @@
   ],
   [
    "editorkit/windows/moves.py",
-   24369
+   24380
   ],
   [
    "editorkit/windows/owndrags.py",
@@ -350,7 +358,7 @@
   ],
   [
    "editorkit/windows/state.py",
-   1349
+   1173
   ],
   [
    "editorkit/windows/tabpreview.py",
@@ -370,7 +378,7 @@
   ],
   [
    "editorkit/windows/window.py",
-   35715
+   36156
   ],
   [
    "editorkit/wrench.py",
@@ -378,11 +386,15 @@
   ],
   [
    "editorkit_toolbox/__init__.py",
-   221
+   220
   ],
   [
    "editorkit_toolbox/console.py",
-   11916
+   11956
+  ],
+  [
+   "editorkit_toolbox/detect.py",
+   6906
   ],
   [
    "editorkit_toolbox/diff_rows.py",
@@ -390,27 +402,27 @@
   ],
   [
    "editorkit_toolbox/docs.py",
-   10674
+   10998
   ],
   [
    "editorkit_toolbox/docs_index.py",
-   5555
+   5545
   ],
   [
    "editorkit_toolbox/explain.py",
-   39781
+   39164
   ],
   [
    "editorkit_toolbox/explain_subject.py",
-   15003
+   15028
   ],
   [
    "editorkit_toolbox/filebrowser.py",
-   12955
+   12969
   ],
   [
    "editorkit_toolbox/filecards.py",
-   2149
+   2148
   ],
   [
    "editorkit_toolbox/files_page.py",
@@ -418,23 +430,19 @@
   ],
   [
    "editorkit_toolbox/find.py",
-   12739
+   12742
   ],
   [
    "editorkit_toolbox/hub.py",
-   32983
+   33010
   ],
   [
    "editorkit_toolbox/learn.py",
    13634
   ],
   [
-   "editorkit_toolbox/lens_detect.py",
-   6924
-  ],
-  [
    "editorkit_toolbox/lineops.py",
-   6496
+   6486
   ],
   [
    "editorkit_toolbox/lookup.py",
@@ -470,11 +478,11 @@
   ],
   [
    "editorkit_toolbox/packages_tool.py",
-   15702
+   15715
   ],
   [
    "editorkit_toolbox/quick.py",
-   15104
+   15132
   ],
   [
    "editorkit_toolbox/runner.py",
@@ -482,7 +490,7 @@
   ],
   [
    "editorkit_toolbox/scissors_bar.py",
-   15609
+   15613
   ],
   [
    "editorkit_toolbox/scissors_range.py",
@@ -490,15 +498,15 @@
   ],
   [
    "editorkit_toolbox/scriptops.py",
-   11623
+   11622
   ],
   [
    "editorkit_toolbox/scriptview.py",
-   9092
+   9119
   ],
   [
    "editorkit_toolbox/search.py",
-   37189
+   8180
   ],
   [
    "editorkit_toolbox/snippet_library.py",
@@ -506,55 +514,79 @@
   ],
   [
    "editorkit_toolbox/snippet_seeds.py",
-   3776
+   3789
   ],
   [
    "editorkit_toolbox/snippets.py",
-   13064
+   13091
   ],
   [
    "editorkit_toolbox/snippets_core.py",
-   22271
+   22036
   ],
   [
    "editorkit_toolbox/tools.py",
-   11902
+   11955
   ],
   [
    "examples/editor_annotate_and_highlight.py",
-   330
+   331
+  ],
+  [
+   "examples/editor_clean_slate.py",
+   926
   ],
   [
    "examples/editor_keys.py",
    566
   ],
   [
-   "examples/editor_text_box.py",
-   692
-  ],
-  [
-   "examples/editor_toolbar_and_views.py",
+   "examples/editor_line_badge.py",
    882
   ],
   [
+   "examples/editor_replace_and_open.py",
+   1212
+  ],
+  [
+   "examples/editor_text_box.py",
+   693
+  ],
+  [
+   "examples/editor_toolbar_and_views.py",
+   887
+  ],
+  [
    "examples/editor_watch_changes.py",
-   535
+   540
+  ],
+  [
+   "examples/theme_night.py",
+   1621
   ],
   [
    "examples/tool_finder.py",
-   2635
+   3157
   ],
   [
    "examples/tool_tab_switcher.py",
-   1389
+   1528
+  ],
+  [
+   "examples/tool_todos.py",
+   1634
   ],
   [
    "examples/tool_word_pad.py",
-   1544
+   1909
+  ],
+  [
+   "examples/window_explainer.py",
+   2870
   ],
   [
    "examples/window_hello.py",
-   437
+   438
   ],
   [
    "examples/window_homes.py",
@@ -562,11 +594,11 @@
   ],
   [
    "examples/window_line_watcher.py",
-   1395
+   1396
   ],
   [
    "examples/window_notes.py",
-   1731
+   1732
   ],
   [
    "examples/window_notes.txt",
@@ -574,59 +606,63 @@
   ],
   [
    "examples/window_show_anything.py",
-   779
+   780
   ],
   [
    "examples/window_stopwatch.py",
-   2766
+   2767
   ],
   [
    "install.py",
-   6553
+   7705
   ],
   [
    "launchers/Toolbox.py",
-   336
+   335
+  ],
+  [
+   "launchers/Uninstall.py",
+   2867
   ],
   [
    "lessons/01_windows.py",
-   3517
+   3430
   ],
   [
    "lessons/02_cards.py",
-   6073
+   6074
   ],
   [
    "lessons/03_the_editor.py",
-   3517
+   3518
   ],
   [
    "lessons/04_edit_the_code.py",
-   4813
+   4814
   ],
   [
    "lessons/05_work_in_the_background.py",
-   4325
+   4326
   ],
   [
    "lessons/06_tabs_and_files.py",
-   3671
+   3672
   ],
   [
    "lessons/07_the_keyboards_place.py",
-   3048
+   2983
   ],
   [
    "lessons/08_the_feed.py",
-   3289
+   3290
   ],
   [
    "lessons/09_part_of_pythonista.py",
-   2952
+   2953
   ],
   [
    "lessons/10_build_a_tool.py",
-   5498
+   6616
   ]
  ]
 }

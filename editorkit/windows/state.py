@@ -20,9 +20,7 @@ PAGE_TICK_SECONDS = 0.1
 # Homes that are a frame over the code (Window(home=...), move_to); see
 # Window._frame_for. 'dock' is the other home.
 FRAME_HOMES = ('top_bar', 'above_dock')
-# Names from before ROADMAP D (2026-11-10), still accepted for homes,
-# move_to frames and win.on events.
-OLD_PLACE_NAMES = {'keyboard': 'dock', 'above_keyboard': 'above_dock'}
+
 
 
 # While a move is running, how often to check before raising the keyboard.

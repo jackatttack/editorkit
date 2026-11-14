@@ -13,7 +13,7 @@ The inventory is plain text, one line per documented name:
 Sphinx marks each entry by id: a <dt id="ui.View"> (the signature) then its
 <dd> (the text) for functions, classes and methods; a section or div with
 id "module-ui" for a module. Pure (no ui, no files):
-apps/deck/tests/smoke_docs_index.py checks it.
+tests/smoke_docs_index.py checks it.
 """
 import html as html_module
 import re

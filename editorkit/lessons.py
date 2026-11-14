@@ -34,7 +34,7 @@ import traceback
 import types
 from collections import namedtuple
 
-from .web import cards
+from .web import cards, prose
 
 
 # --- Settings -------------------------------------------------------------
@@ -77,10 +77,8 @@ def step_spans(source, names):
 
 def line_range(text, first, last):
     """(start, end) character indices of lines first..last (1-based) in text."""
-    lines = text.split('\n')
-    start = sum(len(line) + 1 for line in lines[:first - 1])
-    end = sum(len(line) + 1 for line in lines[:last]) - 1
-    return start, max(start, min(end, len(text)))
+    from .script import lines_in
+    return lines_in(text, first, last)
 
 
 def paragraphs_html(doc):
@@ -90,21 +88,22 @@ def paragraphs_html(doc):
 
 
 def step_page(lesson_title, index, count, title, doc, code, outcome=None):
-    """The card page for one step. outcome is None, ('value', text) or
-    ('error', traceback text)."""
+    """The page for one step, in the docs' look (editorkit.web.prose): the
+    title, the docstring, the step's code (with ⧉ Copy), then what happened.
+    outcome is None, ('value', text) or ('error', traceback text)."""
     page = cards.Page()
     page.heading('%s · step %d of %d' % (lesson_title, index + 1, count))
-    grid = [cards.Card(title, None, paragraphs_html(doc))]
+    blocks = [prose.heading(title, 2), prose.text(doc or '')]
     if code:
-        grid.append(cards.Card('The code', None, cards.code(code)))
+        blocks.append(prose.code(code))
     if outcome is not None:
         kind, words = outcome
         if kind == 'error':
-            grid.append(cards.Card('⚠️ It raised an error', None, cards.code(words),
-                                   '#FF5A5F'))
+            blocks.append(prose.callout('⚠️ It raised an error',
+                                        prose.code(words, python=False), kind='danger'))
         else:
-            grid.append(cards.Card('It returned', None, cards.text(words), '#62D26F'))
-    page.grid(grid)
+            blocks.append(prose.note(words, 'It returned', 'tip'))
+    page.prose(*blocks)
     last = index + 1 >= count
     page.buttons([[cards.Action('◀ Back', ('back',), look='quiet' if index == 0 else None),
                    cards.Action('▶ Try it', ('try',), look='go'),
@@ -136,11 +135,25 @@ class Lesson:
             return function
         return add
 
+    def new_window(self, title, key=None, **options):
+        """A window for a step: owned by the lesson (folding the lesson takes
+        it along, Done closes it) and keyed from its title, so trying the
+        step again replaces it instead of adding another. Takes everything
+        ek.Window does.
+
+            window = lesson.new_window('Hello', emoji='👋')
+
+        (lesson.window, with no call, is the lesson's own window.)
+        """
+        import editorkit as ek
+        key = key or 'lesson-' + '-'.join(title.lower().split())
+        return ek.Window(title, key=key, owner=self.window, **options)
+
     def run(self):
         """Open the lesson window at the first step (call at the end of the
         lesson script)."""
         import editorkit as ek
-        from . import tiles
+        from .web import tiles
         self.namespace = dict(sys._getframe(1).f_globals)
         with open(self.path, encoding='utf-8') as handle:
             source = handle.read()

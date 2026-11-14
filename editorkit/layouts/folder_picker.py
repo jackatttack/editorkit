@@ -26,8 +26,8 @@ import os
 
 import ui
 
-from .. import tiles
-from ..tiles.base import PADDING, ROW_HEIGHT, make_button
+from .. import native
+from ..native.base import PADDING, ROW_HEIGHT, make_button
 
 
 # --- Settings -------------------------------------------------------------
@@ -41,10 +41,10 @@ def same_folder(first, second):
     return os.path.normpath(first) == os.path.normpath(second)
 
 
-class FolderPicker(tiles.Tile):
+class FolderPicker(native.Tile):
 
     def __init__(self, window, on_pick=None):
-        tiles.Tile.__init__(self, window)
+        native.Tile.__init__(self, window)
         self.background_color = self.palette.panel        # opaque: a sheet
         self.on_pick = on_pick
         self.folder = None
@@ -64,7 +64,7 @@ class FolderPicker(tiles.Tile):
         self.up_button.hidden = True
         self.add_subview(self.up_button)
 
-        self.folders = tiles.Folders(window, on_pick=self.picked)
+        self.folders = native.Folders(window, on_pick=self.picked)
         self.add_subview(self.folders)
 
     def open(self, folder, lead=None, title=None, drill=False, root=None):

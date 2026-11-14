@@ -3,7 +3,7 @@ whole-script writes, scratch pads, duplicates, rename and delete.
 Pythonista only.
 
 Ported from Editor Deck's editor_bridge (RELEASE.txt 1.1, 2026-11-11) so
-the deck needs nothing outside its folder. Whole-script writes go through
+Toolbox needs nothing outside its folder. Whole-script writes go through
 the active tab's text view, measured by that view's own length, because
 editor.replace_text can never replace the last character; when the tab
 cannot be found they fall back to editor.replace_text. Rename goes through

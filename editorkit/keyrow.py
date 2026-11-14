@@ -139,7 +139,7 @@ def keyboard(keys=None, second_row=None):
 
 
 @_app.on_main
-def reset_keyboard():
+def clear_keyboard():
     keeper = _keeper(create=False)
     if keeper is None:
         return

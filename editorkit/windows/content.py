@@ -14,6 +14,7 @@
 import io
 import os
 import sys
+from collections import namedtuple
 
 import ui
 
@@ -26,11 +27,27 @@ from . import look, rules
 # view below. Left as None, the core still shows HTML on its own.
 make_html_page = None
 
+# Card pages: the root sets this to editorkit.web.show.page_for_cards. It
+# takes (thing, window, on_pick) and returns a web tile for a cards.Page, or
+# None for anything else.
+make_cards_page = None
+
+
+# A thing shown with ek.show(..., on_pick=...): the page and what a tap calls.
+Picking = namedtuple('Picking', 'thing on_pick')
+
 
 def view_for(thing, window):
     """A ui.View page for thing, in the window's colours."""
+    on_pick = None
+    if isinstance(thing, Picking):
+        thing, on_pick = thing.thing, thing.on_pick
     if isinstance(thing, ui.View):
         return thing
+    if make_cards_page is not None:
+        view = make_cards_page(thing, window, on_pick)
+        if view is not None:
+            return view
     if callable(thing):
         return view_for(thing(window), window)
     if rules.is_pyui_path(thing) and os.path.isfile(os.path.abspath(thing.strip())):
@@ -114,6 +131,10 @@ def caller_frame():
 
 def title_for(thing):
     """The title ek.show uses when it is given none."""
+    if isinstance(thing, Picking):
+        thing = thing.thing
+    if hasattr(thing, 'section') and hasattr(thing, 'grid'):
+        return 'Cards'
     if isinstance(thing, ui.View):
         return thing.name or 'Window'
     if rules.is_pyui_path(thing):

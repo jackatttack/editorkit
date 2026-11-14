@@ -28,4 +28,4 @@ def badge(text, colour, width):
 
 ek.toolbar_button('⚡', mark_line)
 ek.float_view(badge('editorkit', '#e8335a', 90))
-ek.pin(badge('◀ line 5', '#3b82f6', 80), line=5)
+ek.pin_view(badge('◀ line 5', '#3b82f6', 80), line=5)

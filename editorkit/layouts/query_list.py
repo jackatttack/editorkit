@@ -37,7 +37,7 @@ typed query into a list to pick from: symbols, commands, files.
                               rows=[replace_field], summary=lambda: 'def · 12')
     view.field, view.body, view.controls, view.top.set_visible(row, True)
 """
-from .. import tiles
+from .. import native
 from ..job import Job
 from .accessory import Accessory
 
@@ -69,16 +69,16 @@ class QueryList:
         if any(getattr(source, 'slow', False) for source in self.sources):
             self.job = Job(window, self._search_slow, on_items=self._slow_arrived,
                            on_done=self._slow_done)
-        self.field = tiles.Field(window, placeholder,
+        self.field = native.Field(window, placeholder,
                                  on_change=self.typed if self.sources else on_change,
                                  on_return=on_return)
-        self.body = body if body is not None else tiles.Results(window, on_pick=on_pick)
+        self.body = body if body is not None else native.Results(window, on_pick=on_pick)
         self.results = self.body
         self.path = path
         self.rows = list(rows)
         self.rows_above = list(rows_above)
-        self.controls = tiles.Controls(window, intro=help_intro) if controls else None
-        self.bar = tiles.Bar(window, on_tap=lambda bar: self.set_compact(False))
+        self.controls = native.Controls(window, intro=help_intro) if controls else None
+        self.bar = native.Bar(window, on_tap=lambda bar: self.set_compact(False))
         self.bar.hidden = True
 
         stack = ([self.bar] + self.rows_above + [self.field] + self.rows

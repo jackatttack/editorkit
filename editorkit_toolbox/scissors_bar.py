@@ -88,12 +88,12 @@ class ScissorsBar(ui.View):
     # --- Building ---------------------------------------------------------
 
     def palette(self):
-        from editorkit.tiles.base import palette_for
+        from editorkit.native.base import palette_for
         return palette_for(self.window)
 
     def make_field(self, placeholder):
-        from editorkit.tiles.base import style_field
-        from editorkit.tiles.field import tint_placeholder
+        from editorkit.native.base import style_field
+        from editorkit.native.field import tint_placeholder
         field = style_field(ui.TextField(placeholder=placeholder), self.palette())
         tint_placeholder(field, self.palette().dim)
         field.keyboard_type = ui.KEYBOARD_NUMBER_PAD
@@ -111,7 +111,7 @@ class ScissorsBar(ui.View):
 
     def restyle(self):
         """The theme changed: re-apply the palette's colours."""
-        from editorkit.tiles.field import tint_placeholder
+        from editorkit.native.field import tint_placeholder
         palette = self.palette()
         for field in (self.first_field, self.last_field):
             field.background_color = palette.background

@@ -3,7 +3,7 @@ import ui
 
 from .. import _app
 from . import look, places, rules
-from .state import FRAME_HOMES, KEYBOARD_RETRY_SECONDS, OLD_PLACE_NAMES, _remembered
+from .state import FRAME_HOMES, KEYBOARD_RETRY_SECONDS, _remembered
 
 
 class Homes(object):
@@ -16,11 +16,8 @@ class Homes(object):
 
     @staticmethod
     def _current_name(name):
-        """A place, home or event name with old names mapped to today's
-        ('keyboard' -> 'dock', 'above_keyboard' -> 'above_dock'). Frames
-        given as (x, y, w, h) pass through."""
-        if isinstance(name, str):
-            return OLD_PLACE_NAMES.get(name, name)
+        """A place, home or event name as given; frames (x, y, w, h) pass
+        through. The one place to map names if they ever change again."""
         return name
 
     @_app.on_main

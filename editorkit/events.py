@@ -105,7 +105,7 @@ def remove_listener(handle):
 
 
 @_app.on_main
-def stop_events():
+def clear_listeners():
     del _listeners()[:]
     poller = _app.store('objects').pop('poller', None)
     if poller is not None:

@@ -4,34 +4,41 @@ The finished tool from Lesson 6 (Tabs and files): ek.open_tabs and
 ek.selected_tab draw the cards, ek.select_tab switches, and an
 ek.on_change listener for 'file' keeps the cards up to date. Closing the
 window removes the listener: a tool tidies up after itself.
+
+ek.run_tool(main) keeps this script's names alive after it ends, so the
+window's callbacks can use them.
 """
+import os
+
+import editorkit as ek
+from editorkit.web import cards, tiles
+
+# --- Settings ------------------------------------------------------------------
+
+KEY = 'example-tabs'
+SIZE = (320, 360)
+
+
+def tabs_page():
+    """Every open tab as a card, the one showing marked."""
+    showing = ek.selected_tab()
+    page = cards.Page()
+    page.grid([cards.Card(os.path.basename(path), item=path,
+                          body=cards.text('● showing now' if path == showing
+                                          else os.path.basename(os.path.dirname(path))))
+               for path in ek.open_tabs()], min_width=150)
+    return page
 
 
 def main():
-    # Pythonista clears a script's names when it ends, but this window lives
-    # on: everything its callbacks use is local to main(), so they keep it.
-    import os
-
-    import editorkit as ek
-    from editorkit.web import cards, tiles
-
-    window = ek.Window('Tabs', emoji='🗂', key='example-tabs', size=(320, 360))
-    board = tiles.Cards(window, on_pick=ek.select_tab, zoom_key='example-tabs')
+    window = ek.Window('Tabs', emoji='🗂', key=KEY, size=SIZE)
+    board = tiles.Cards(window, on_pick=ek.select_tab, zoom_key=KEY)
     window.add_page('Tabs', board)
-
-    def draw(event=None):
-        showing = ek.selected_tab()
-        page = cards.Page()
-        page.grid([cards.Card(os.path.basename(path), item=path,
-                              body=cards.text('● showing now' if path == showing
-                                              else os.path.basename(os.path.dirname(path))))
-                   for path in ek.open_tabs()], min_width=150)
-        board.show(page)
-
-    listener = ek.on_change(draw, kinds=['file'], key='example-tabs-watch')
+    listener = ek.on_change(lambda *_event: board.show(tabs_page()), kinds=['file'],
+                            key=KEY + '-watch')
     window.on('close', lambda _window: ek.remove_listener(listener))
-    draw()
+    board.show(tabs_page())
     window.show()
 
 
-main()
+ek.run_tool(main)

@@ -1,4 +1,4 @@
-"""The starter snippets for a new Snippets library (deck.snippets seeds a
+"""The starter snippets for a new Snippets library (editorkit_toolbox.snippets seeds a
 library file that does not exist yet). Edit freely: (group, colour,
 [(title, text), ...]). ${cursor} marks where the cursor lands; ${date},
 ${time} and ${clipboard} are filled in when a snippet is typed.

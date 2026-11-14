@@ -16,6 +16,7 @@ to read. The whole card is one tappable area, so a tap anywhere closes it,
 as the native card did.
 """
 from .. import cards as card_kit
+from .. import prose
 from .cards import Cards
 
 
@@ -41,18 +42,17 @@ class Card(Cards):
         self.set_text(text)
 
     def set_text(self, text):
-        """Show text: first paragraph as the heading, the rest as notes."""
+        """Show text in the docs' look (editorkit.web.prose): the first
+        paragraph as the heading, the rest as prose, with `code` chips and
+        bulleted lists. A tap anywhere on the card closes it."""
         paragraphs = [part.strip() for part in (text or '').split('\n\n') if part.strip()]
         heading = paragraphs[0] if paragraphs else ''
-        notes = paragraphs[1:]
-
-        parts = ['<div class="ek-heading">%s</div>' % card_kit.escape(heading)]
-        parts += ['<div class="ek-note">%s</div>' % card_kit.escape(note) for note in notes]
-        parts.append('<div class="hc-hint">%s</div>' % card_kit.escape(HINT_TEXT))
-
+        body = '\n\n'.join(paragraphs[1:])
+        inner = prose.article(prose.heading(heading, 2), prose.text(body))
+        hint = '<div class="hc-hint">%s</div>' % card_kit.escape(HINT_TEXT)
         page = card_kit.Page()
         # One wrapper carries the tap, so anywhere on the card closes it.
-        page.parts.append('<div class="hc"%s>%s</div>' % (page.go(CLOSE), ''.join(parts)))
+        page.parts.append('<div class="hc"%s>%s%s</div>' % (page.go(CLOSE), inner, hint))
         self.show(page)
 
     def tapped(self, item):

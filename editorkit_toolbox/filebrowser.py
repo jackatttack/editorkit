@@ -3,7 +3,7 @@ windows, and rename, copy, move or delete.
 
 A Pair: the folder's page of tiles (editorkit's card kit, built by
 files_page) fills the space over the code, and the previewed file rides in
-the dock as its keys: a script window (deck.scriptview), the deck's one
+the dock as its keys: a script window (editorkit_toolbox.scriptview), Toolbox's one
 code viewer, with ▶ ✂️ ⚡ and line taps. Tapping another file swaps the
 file in that same window. If the preview asks for its own keys (✂️) it
 leaves Files and stays as a window of its own; the next file tapped gets a
@@ -24,7 +24,7 @@ import os
 import time
 
 import editorkit as ek
-from editorkit import browse, fileops, layouts, tiles
+from editorkit import browse, fileops, layouts, native
 from editorkit.web import tiles as web_tiles
 
 from . import files_page
@@ -114,7 +114,7 @@ class FilesTool:
     # --- The page of tiles --------------------------------------------------
 
     def show_folder(self, folder):
-        """Show folder's tiles. The preview stays chosen only if it is in there."""
+        """Show folder's native. The preview stays chosen only if it is in there."""
         if self.previewing and not same_path(os.path.dirname(self.previewing), folder):
             self.previewing = None
         self.folder = folder

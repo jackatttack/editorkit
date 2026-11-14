@@ -12,8 +12,8 @@
 """
 import ui
 
-from .. import tiles
-from ..tiles.base import PADDING, ROW_HEIGHT, make_button
+from .. import native
+from ..native.base import PADDING, ROW_HEIGHT, make_button
 
 
 # --- Settings -------------------------------------------------------------
@@ -23,10 +23,10 @@ CLOSE_ICON = '✕'
 ANSWER_ICON = '✓'
 
 
-class Prompt(tiles.Tile):
+class Prompt(native.Tile):
 
     def __init__(self, window):
-        tiles.Tile.__init__(self, window)
+        native.Tile.__init__(self, window)
         self.background_color = self.palette.panel        # opaque: a sheet
         self.on_answer = None
 
@@ -39,7 +39,7 @@ class Prompt(tiles.Tile):
                                         self.palette)
         self.add_subview(self.close_button)
 
-        self.field = tiles.Field(window, on_return=self.answered)
+        self.field = native.Field(window, on_return=self.answered)
         self.field.add_button(ANSWER_ICON, self.answered)
         self.add_subview(self.field)
 
@@ -68,7 +68,7 @@ class Prompt(tiles.Tile):
                                    ROW_HEIGHT, ROW_HEIGHT)
         self.title.frame = (PADDING * 2, top,
                             max(0, self.close_button.x - PADDING * 3), ROW_HEIGHT)
-        self.field.frame = (0, top + ROW_HEIGHT + PADDING, self.width, tiles.Field.HEIGHT)
+        self.field.frame = (0, top + ROW_HEIGHT + PADDING, self.width, native.Field.HEIGHT)
 
 
 def prompt(window):

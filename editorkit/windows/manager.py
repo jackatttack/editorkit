@@ -66,8 +66,8 @@ class Manager(ui.View):
         self._guard('keyboard_row', self.dock.keep_row_off)
         dragging = False
         for window in list(self.windows.values()):
-            self._guard('window %s' % window.key, window.tick, now)
-            dragging = dragging or window.is_dragging()
+            self._guard('window %s' % window.key, window._tick, now)
+            dragging = dragging or window._is_dragging()
         self._guard('arrange_pins', self.arrange_pins)
         self._guard('keep_riders_on_dock', self.keep_riders_on_dock)
         if self.swipes.active and not dragging:
@@ -175,7 +175,7 @@ class Manager(ui.View):
                                             for other in windows)
             if not holds:
                 continue
-            window.emit('tray', self.tray_windows(window))
+            window._emit('tray', self.tray_windows(window))
             refresh = getattr(window, '_refresh_box', None)
             if callable(refresh):
                 self._guard('box %s' % getattr(window, 'key', '?'), refresh)

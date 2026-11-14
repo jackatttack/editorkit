@@ -1,11 +1,13 @@
 """Install or update Toolbox for Pythonista and the editorkit library.
 
 Run this script; run it again any time to update. It:
-  - puts the editorkit library, the Toolbox app and codesense (the code
-    analysis behind Explain) in site-packages-3,
-  - makes Documents/Toolbox/ with the Toolbox launcher, examples, lessons
-    and docs,
-  - adds Toolbox to the editor's wrench menu (once; reruns update it).
+  - puts the editorkit library and the Toolbox app in site-packages-3,
+  - makes Documents/Toolbox/ with the Toolbox launcher, examples and
+    lessons,
+  - adds Toolbox to the editor's wrench menu (once; reruns update it),
+  - moves aside packages earlier releases installed and this one does not
+    (RETIRED).
+Documents/Toolbox/Uninstall.py takes it all out again.
 
 Run beside the packages (a downloaded or staged copy of the repo), it
 installs from there; otherwise it downloads the repo from GitHub.
@@ -29,9 +31,13 @@ ZIP_URL = 'https://github.com/%s/archive/refs/heads/%s.zip' % (REPO, BRANCH)
 DOCUMENTS = os.path.expanduser('~/Documents')
 SITE_PACKAGES = os.path.join(DOCUMENTS, 'site-packages-3')
 HOME = os.path.join(DOCUMENTS, 'Toolbox')
-PACKAGES = ('editorkit', 'editorkit_toolbox', 'codesense')
-FOLDERS = ('examples', 'lessons', 'docs')
+PACKAGES = ('editorkit', 'editorkit_toolbox')
+FOLDERS = ('examples', 'lessons')
 LAUNCHER = 'Toolbox.py'
+UNINSTALLER = 'Uninstall.py'
+# Packages earlier releases installed and this one does not, by the files
+# that prove a folder is ours: moved to _to_delete on update.
+RETIRED = {'codesense': ('assist.py', 'context.py', 'units.py', 'timing.py')}
 WRENCH_TITLE = 'Toolbox'
 WRENCH_ICON = 'Primaries_Home'
 WRENCH_COLOUR = '#F26EFF'
@@ -86,6 +92,19 @@ def set_aside(path):
     return moved
 
 
+def retire_old_packages():
+    """Move packages earlier releases installed, and this one does not, into
+    Documents/_to_delete. Only a folder holding all of that package's own
+    files counts as ours. Returns where they went."""
+    moved = []
+    for name, own_files in sorted(RETIRED.items()):
+        folder = os.path.join(SITE_PACKAGES, name)
+        if os.path.isdir(folder) and all(os.path.isfile(os.path.join(folder, own))
+                                         for own in own_files):
+            moved.append(set_aside(folder))
+    return moved
+
+
 def update_learn_folder(source, folder):
     """Bring Toolbox/<folder> up to date without losing anything you wrote.
 
@@ -128,12 +147,16 @@ def main():
     root, temp = source_folder()
     try:
         os.makedirs(SITE_PACKAGES, exist_ok=True)
+        for path in retire_old_packages():
+            print('  ↪ an older package moved to %s' % os.path.relpath(path, DOCUMENTS))
         for package in PACKAGES:
             replace_tree(os.path.join(root, package), os.path.join(SITE_PACKAGES, package))
             print('  ✓ %s' % package)
         os.makedirs(HOME, exist_ok=True)
         shutil.copy2(os.path.join(root, 'launchers', LAUNCHER), os.path.join(HOME, LAUNCHER))
         print('  ✓ Toolbox/%s' % LAUNCHER)
+        shutil.copy2(os.path.join(root, 'launchers', UNINSTALLER), os.path.join(HOME, UNINSTALLER))
+        print('  ✓ Toolbox/%s' % UNINSTALLER)
         for folder in FOLDERS:
             source = os.path.join(root, folder)
             if not os.path.isdir(source):

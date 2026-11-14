@@ -28,6 +28,7 @@ from collections import OrderedDict
 import editorkit as ek
 from editorkit import layouts
 from editorkit.web import cards as card_kit
+from editorkit.web import prose
 from editorkit.web import tiles as web_tiles
 
 from . import docs_index
@@ -129,53 +130,56 @@ def insert_name(entry):
 
 # --- Pages of cards -------------------------------------------------------------
 
-def result_card(entry, with_summary):
-    body = '<div class="dc-kind">%s</div>' % card_kit.escape(kind_name(entry))
+def result_row(page, entry, with_summary):
+    """An entry as a docs-style row: its signature line (kind, module part,
+    name), then its first sentence. The whole row opens it."""
+    module, _dot, name = entry.name.rpartition('.')
+    kind = kind_name(entry)
+    signature = prose.signature(name, None, prefix=module + '.' if module else '',
+                                kind='' if kind == 'module' and not module else kind)
+    line = ''
     if with_summary:
         try:
             line = docs_index.summary(section_of(entry)[1])
         except Exception:
             line = ''
-        if line:
-            body += '<div class="dc">%s</div>' % card_kit.escape(line)
-    return card_kit.Card(entry.name, item=entry, body=body)
+    return prose.row(signature, line, go=page.go(entry))
 
 
-def results_page(label, found):
+def results_page(label, found, title=None):
+    """The results as one docs-style list: a heading (or the count as a small
+    line), then a row per entry."""
     page = card_kit.Page()
-    page.note(label)
-    page.grid([result_card(entry, index < SUMMARY_COUNT) for index, entry in enumerate(found)],
-              min_width=RESULT_WIDTH)
+    heading = [prose.heading(title, 2)] if title else [prose.meta(label)]
+    rows = [result_row(page, entry, index < SUMMARY_COUNT) for index, entry in enumerate(found)]
+    page.prose(*(heading + rows))
     return page
 
 
 def detail_page(entry):
+    """An entry as one article in the docs' own look (editorkit.web.prose):
+    its name, its kind and page, the signature, then the text, every code
+    block with ⧉ Copy."""
     signature, body = section_of(entry)
     page = card_kit.Page()
     page.buttons([card_kit.Action('◀ Results', ('back', None)),
                   card_kit.Action('Insert %s' % insert_name(entry), ('insert', insert_name(entry)),
                                   look='go')])
-    page.heading(entry.name)
-    page.note('%s · %s' % (kind_name(entry), entry.page))
-    grid = []
+    blocks = [prose.heading(entry.name, 1),
+              prose.meta('%s · %s' % (kind_name(entry), entry.page))]
     if signature:
-        grid.append(card_kit.Card('Signature', body='<div class="dc-sig">%s</div>'
-                                  % docs_index.clean(signature)))
+        blocks.append('<div class="ek-sig">%s</div>' % docs_index.clean(signature))
     if body:
-        text = docs_index.replace_code(docs_index.clean(body), render_code)
+        blocks.append(docs_index.replace_code(docs_index.clean(body), render_code))
     else:
-        text = '<p>No text found for this entry.</p>'
-    grid.append(card_kit.Card('About', body='<div class="dc">%s</div>' % text))
-    # One column that always fits the window: the text wraps, never runs off.
-    page.parts.append('<div class="dc-one">')
-    page.grid(grid, min_width=RESULT_WIDTH)
-    page.parts.append('</div>')
+        blocks.append(prose.text('No text found for this entry.'))
+    page.prose(*blocks)
     return page
 
 
 def render_code(text):
-    """A docs code block in the card kit's own colouring (the theme's syntax colours)."""
-    return card_kit.code(text, lines=CODE_LINES, python=True)
+    """A docs code block in the theme's syntax colours, whole, with ⧉ Copy."""
+    return prose.code(text)
 
 
 # --- The tool -----------------------------------------------------------------
@@ -242,7 +246,7 @@ class DocsTool:
         else:
             found = docs_index.named(entries(), STARTERS)
             label = "Pythonista's modules"
-        self.last_results = results_page(label, found)
+        self.last_results = results_page(label, found, title=None if term else label)
         self.cards.show(self.last_results)
         self.window.set_title(TITLE)
 

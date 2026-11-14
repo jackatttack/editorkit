@@ -15,9 +15,9 @@ def hello():
     the editor while you work.
 
     Tap ▶ Try it. Then drag the new window by any empty part, or resize it
-    from its ◢ corner. owner=lesson.window makes it part of this lesson
-    (more on that in Folding away)."""
-    window = ek.Window('Hello', emoji='👋', key='lesson-hello', owner=lesson.window)
+    from its ◢ corner. lesson.new_window makes it part of this lesson: Done
+    closes it (more on that in Folding away)."""
+    window = lesson.new_window('Hello', emoji='👋')
     window.add_page('Hi', 'Hello! I am a window over your code.')
     window.show()
 
@@ -28,7 +28,7 @@ def pages():
 
     A page can be text, HTML, an image, a figure or any ui.View. HTML takes
     your theme's colours."""
-    window = ek.Window('Notes', emoji='📝', key='lesson-notes', owner=lesson.window)
+    window = lesson.new_window('Notes', emoji='📝')
     window.add_page('Today', 'Finish the lesson.')
     window.add_page('HTML', '<h2>Hello</h2><p>This page is <b>HTML</b>.</p>')
     window.show()
@@ -40,7 +40,7 @@ def buttons():
     puts a button there, and its action gets the window.
 
     Here + counts taps, and set_page_content swaps the page in place."""
-    window = ek.Window('Counter', emoji='🔢', key='lesson-counter', owner=lesson.window)
+    window = lesson.new_window('Counter', emoji='🔢')
     taps = [0]
     window.add_page('Count', 'Tap + in the header')
 

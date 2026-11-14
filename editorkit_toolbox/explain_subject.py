@@ -22,8 +22,8 @@ import re
 import textwrap
 
 try:
-    import codesense
-    from codesense import units
+    from editorkit import codesense
+    from editorkit.codesense import units
 except ImportError:                  # without codesense, kinds come from the text alone
     codesense = None
 

@@ -391,7 +391,7 @@ EDITORKIT = ('editorkit', '#F26EFF', [
         '''),
     snippet('Keys above the keyboard', r'''
         ek.keyboard(second_row=['${cursor}self', 'def ', 'return ', ('True', 'False', 'None')])
-        # ek.reset_keyboard() puts Pythonista's own back
+        # ek.clear_keyboard() puts Pythonista's own back
         '''),
     snippet('Window in the keyboard\'s place', r'''
         from editorkit.web import tiles as web_tiles

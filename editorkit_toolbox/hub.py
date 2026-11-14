@@ -1,4 +1,4 @@
-"""The deck's hub: the 🏡 pin that holds every tool, the tray, recent
+"""Toolbox's hub: the 🏡 pin that holds every tool, the tray, recent
 scripts and Find.
 
 Top to bottom when open:
@@ -28,14 +28,14 @@ import editorkit as ek
 from editorkit.web import codeview
 
 from editorkit import browse
-from editorkit.tiles.chips import Chips
+from editorkit.native.chips import Chips
 
 from . import filecards      # one picture of a file (Recent, Files named)
 from . import files_page     # the folder sheet that picks where Find looks
 from . import search         # Find shares Search's file-name and code scan
-from editorkit import layouts, sources, tiles
+from editorkit import layouts, sources, native
 from editorkit.web import tiles as web_tiles
-from editorkit.tiles.base import Tile
+from editorkit.native.base import Tile
 
 from . import tools
 
@@ -140,7 +140,7 @@ def tool_cards(specs):
 
 
 def recent_cards(paths):
-    """Recent scripts as the deck's file cards: a tap opens one in the
+    """Recent scripts as Toolbox's file cards: a tap opens one in the
     editor, 📜 in a script window."""
     return [filecards.file_card(path, ('file', path), search.ViewHit(search.Hit(path, 1, 0, 0)),
                                 where=os.path.dirname(stored_path(path)) or 'Documents')
@@ -292,7 +292,7 @@ FIND_NAME_FILES = 6          # file-name cards until Show all
 FIND_RECENT = 6              # recent script cards
 MORE_LABEL = 'Show all ↓'    # the row after a capped section: lifts its cap
 SCOPE_HERE = '⌂'             # chip: search the open file's folder
-SCOPE_MEMORY = {}            # the folder Find last searched, while the deck is installed
+SCOPE_MEMORY = {}            # the folder Find last searched, while Toolbox is installed
 
 FIND_CSS = search.RESULTS_CSS + """
 .hf-head { display: flex; align-items: baseline; gap: 6px; margin: 12px 6px 4px;
@@ -381,7 +381,7 @@ class Hub:
         self.names_more = False
         self.expanded = set()            # sections whose cap Show all lifted
         self.scope_sheet = None          # the folder sheet, made on first use
-        self.scan_job = ek.Job(self.window, search.SearchTool.scan,
+        self.scan_job = ek.Job(self.window, search.scan,
                                on_items=self.sections_arrived, on_done=self.scan_done,
                                on_error=self.scan_failed)
         self.window.every(self.find_tick)
@@ -390,9 +390,10 @@ class Hub:
         self.window.on('open', self.refresh)
         self.window.on('console', self.refresh)
         # Pull an editor tab down out of the tab bar: it opens as a script
-        # window. The hub lives as long as the deck, so its clock keeps new
+        # window. The hub lives as long as Toolbox, so its clock keeps new
         # tabs attached.
-        ek.on_tab_pull(self.tab_pulled, self.window)
+        from editorkit import tabpull
+        tabpull.on_pull(self.tab_pulled, self.window)
 
         remember_file(ek.current_file())
         ek.on_change(self.file_changed, kinds=('file',), key=LISTENER_KEY)

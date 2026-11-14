@@ -13,7 +13,7 @@ calculators: any asked-and-answered log fits (a REPL, a run log).
 import json
 
 from .. import tapeview
-from ...tiles.base import Tile
+from ...native.base import Tile
 from .code import Code
 
 

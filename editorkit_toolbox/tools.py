@@ -1,14 +1,16 @@
-"""The deck's tools, in the order the hub's Tools page shows them.
+"""Toolbox's tools, in the order the hub's Tools page shows them.
 
-Each tool: name, emoji, what (a few words on what it is for: its card's
-caption), home (where it opens: said in its help card), about (the
-help-mode card) and open (a function that opens it, or None while it is
-still to be built; its tile then shows as 'soon'). A group is a tool with
-'group': [tools] instead of open: its card opens the group's own page in
-the hub (Games). every_tool() lists them all, groups opened out.
+Each tool is a dict: name, emoji, what (a few words: its card's caption),
+home (where it opens, said in its help card), about (the help-mode card)
+and open (a function that opens it). A group is a tool with 'group':
+[tools] instead of open; its card opens the group's own page in the hub
+(Games). every_tool() lists them all, groups opened out.
+
+Your own tools join the hub through plugin files (plugin_tools): one JSON
+file each in Documents/Toolbox/tools/. Files in Documents/Toolbox/games/
+work the same way and land in the Games group.
 """
 import importlib
-import importlib.util
 import json
 import os
 import sys
@@ -16,16 +18,29 @@ import traceback
 
 from . import find
 
-# Games other projects install for Toolbox: one JSON file each, here.
-GAMES_FOLDER = os.path.join(os.path.expanduser('~/Documents'), 'Toolbox', 'games')
+
+# --- Plugin folders -----------------------------------------------------------
+
+DOCUMENTS = os.path.expanduser('~/Documents')
+TOOLS_FOLDER = os.path.join(DOCUMENTS, 'Toolbox', 'tools')
+GAMES_FOLDER = os.path.join(DOCUMENTS, 'Toolbox', 'games')
+
+# (folder, group its tools join, function called when a file names none)
+PLUGIN_FOLDERS = (
+    (TOOLS_FOLDER, None, 'main'),
+    (GAMES_FOLDER, 'Games', 'open_game'),
+)
+
+# How a group's card looks. A group not listed here gets the default emoji.
+GROUP_CARDS = {
+    'Games': {'emoji': '🎮',
+              'about': 'Games played over the code, added by other projects. '
+                       'Tap to see them.'},
+}
+DEFAULT_GROUP_EMOJI = '🗂'
 
 
-def shipped(module):
-    """True when this copy of the app has the module. The public release
-    leaves some tools out (tools/stage_release.py LEFT_OUT); their cards go
-    with them (OPTIONAL_TOOLS below)."""
-    return importlib.util.find_spec('%s.%s' % (__package__, module)) is not None
-
+# --- Toolbox's own tools ------------------------------------------------------
 
 def open_learn():
     from . import learn
@@ -38,8 +53,7 @@ def open_packages():
 
 
 def open_scissors():
-    """The Scissors bar over the top of the code (the keyboard version is
-    still a script window's ✂️ keys, until it is retired)."""
+    """The Scissors bar over the top of the code."""
     from . import scissors_bar
     return scissors_bar.open_scissors_bar()
 
@@ -55,14 +69,13 @@ def open_explain():
 
 
 def open_snippets():
-    # Imported on first use, so the hub still opens if the snippet keyboard's
-    # core (projects/keyboard/snippets) is missing.
+    # Imported on first use, so the hub still opens if Snippets cannot load.
     from . import snippets
     return snippets.open_snippets()
 
 
 def open_search():
-    """Searching across files is the hub's Find now."""
+    """Searching across files is the hub's Find."""
     from . import hub
     return hub.open_find()
 
@@ -87,16 +100,6 @@ def open_quick():
     return quick.open_quick()
 
 
-def open_calc():
-    from . import calc
-    return calc.open_calc()
-
-
-def open_snake():
-    from . import snake
-    return snake.open_snake()
-
-
 def open_find():
     return find.open_find()
 
@@ -106,87 +109,7 @@ def open_tidy():
     return ek.tidy()
 
 
-def maths_game_tool(game):
-    """One Maths Games game (native) as a tool for the Games group."""
-
-    def open_it(game_id=game.game_id):
-        from . import mathsgames
-        return mathsgames.open_game(game_id)
-
-    return {'name': game.title, 'emoji': game.icon, 'what': 'Maths Games',
-            'home': 'over the code', 'open': open_it, 'about': game.tagline}
-
-
-def maths_games_tools():
-    """Maths Games (a separate project, hosted in place) as tools, or []
-    when it is not on this device. The hub must open either way."""
-    try:
-        from . import mathsgames_source
-        return [maths_game_tool(game) for game in mathsgames_source.games()]
-    except Exception:
-        import traceback
-        traceback.print_exc()
-        return []
-
-
-def installed_game_tool(spec):
-    """One installed game as a tool. spec: name, folder (put on sys.path),
-    module and function (called with args); emoji, what and about optional."""
-    folder, module_name = spec['folder'], spec['module']
-    function_name = spec.get('function', 'open_game')
-    arguments = list(spec.get('args', []))
-
-    def open_it():
-        if not os.path.isdir(folder):
-            raise RuntimeError('%s is not installed at %s' % (spec['name'], folder))
-        if folder not in sys.path:
-            sys.path.insert(0, folder)
-        root = module_name.split('.')[0]
-        for loaded in [name for name in sys.modules if name.split('.')[0] == root]:
-            del sys.modules[loaded]              # fresh each open: updates show at once
-        return getattr(importlib.import_module(module_name), function_name)(*arguments)
-
-    return {'name': spec['name'], 'emoji': spec.get('emoji', '🎮'),
-            'what': spec.get('what', 'game'), 'home': 'over the code', 'open': open_it,
-            'about': spec.get('about', '')}
-
-
-def installed_games():
-    """Games installed for Toolbox by other projects: every JSON file in
-    GAMES_FOLDER (Documents/Toolbox/games). Maths Games' installer writes
-    one for each web game. [] when there are none."""
-    try:
-        names = sorted(os.listdir(GAMES_FOLDER))
-    except OSError:
-        return []
-    found = []
-    for name in names:
-        if not name.endswith('.json'):
-            continue
-        try:
-            with open(os.path.join(GAMES_FOLDER, name), encoding='utf-8') as handle:
-                found.append(installed_game_tool(json.load(handle)))
-        except Exception:
-            traceback.print_exc()
-    return found
-
-
-SNAKE = {'name': 'Snake', 'emoji': '🐍', 'what': 'a demo over your code',
-         'home': 'over the code', 'open': open_snake,
-         'about': 'A demo: Snake played over your own code. The pad sits in the '
-                  'keyboard\'s place (⌨ brings it back); the game pauses while it '
-                  'is away. The edges wrap; do not bite yourself.'}
-GAMES = [SNAKE] if shipped('snake') else []
-if shipped('mathsgames_source'):
-    from . import mathsgames_source
-    GAMES.extend(maths_games_tools())
-    GAMES.extend(mathsgames_source.web_port_tools())
-GAMES.extend(installed_games())
-
-
-
-
-TOOLS = [
+BUILT_IN = [
     {'name': 'Learn', 'emoji': '🎓', 'what': 'lessons and examples',
      'home': 'over the code', 'open': open_learn,
      'about': 'The lessons and examples that come with Toolbox. A lesson walks you '
@@ -204,15 +127,15 @@ TOOLS = [
      'about': 'Find in the open script: a slim bar over the code, matches marked '
               'in the editor, ◀ ▶ or Return to step. ⇄ shows Replace. To look '
               'through other files, ⤢ carries the term over to the hub\'s Find.'},
-
     {'name': 'Scissors', 'emoji': '✂️', 'what': 'cut, copy, move lines',
      'home': 'at the top of the code', 'open': open_scissors,
-     'about': 'A range of lines at the top of the code: type the first and last '
-              'lines, or select by hand and they follow. ⌂ the cursor\'s line, ▣ '
-              'the block around it (again to widen), ⤓ one more line. Then copy, '
-              'cut, ⧉ duplicate, ↑ ↓ move past the neighbours, ⇥ ⇤ indent, # '
-              'comment, 🧩 save as a snippet, ▶ run in the Console. The lines stay '
-              'selected, so press again to carry on. No range: the cursor\'s line.'},
+     'about': 'Work on a range of lines from a bar at the top of the code. Type the '
+              'first and last line numbers, or select by hand and they follow. To '
+              'pick lines: ⌂ takes the cursor\'s line, ▣ the block around it (tap again '
+              'to widen), ⤓ one more line. Then copy or cut them, ⧉ duplicate, ↑ ↓ '
+              'move them, ⇥ ⇤ indent, # comment out, 🧩 save as a snippet, or ▶ run '
+              'them in the Console. The lines stay selected, so you can keep going. '
+              'With no range, it works on the cursor\'s line.'},
     {'name': 'Script', 'emoji': '📜', 'what': 'a script as a window',
      'home': 'over the code', 'open': open_script,
      'about': 'The open script in its own window, as code: tap a line to open it '
@@ -239,16 +162,6 @@ TOOLS = [
      'home': 'over the code', 'open': open_quick,
      'about': 'One-tap actions on the open script: copy, run, duplicate, '
               'constants, clipboard and more. ? in its header explains each.'},
-    {'name': 'Calc', 'emoji': '🧮', 'what': 'sums, algebra, calculus',
-     'home': 'in the keyboard\'s place', 'open': open_calc,
-     'about': 'A calculator in the keyboard\'s place, with MATH behind it. 123 '
-              'for arithmetic, f(x) for functions and solve, factor, expand, '
-              'd/dx, ∫, simplify. ↶ takes the last answer back; tap the tape to '
-              'reuse; sel and ↧ code work with the script.'},
-    {'name': 'Games', 'emoji': '🎮', 'home': 'games', 'group': GAMES, 'open': None,
-     'about': 'Games played over the code: Maths Games, their web ports beside '
-              'them for comparison, and Snake. Tap to see them.'},
-
     {'name': 'Docs', 'emoji': '📖', 'what': "Pythonista's documentation",
      'home': 'over the code', 'open': open_docs,
      'about': 'Pythonista\'s own documentation, searched and read over the code. '
@@ -265,12 +178,107 @@ TOOLS = [
               'a name in the field to explain that instead.'},
 ]
 
-# Tools a copy of the app may leave out, by the module each one needs. The
-# public release leaves these out, and their cards go with them.
-OPTIONAL_TOOLS = {'Calc': 'calc', 'Explain': 'explain'}
-TOOLS = [tool for tool in TOOLS
-         if ('group' not in tool or tool['group'])          # Games: shown when there are any
-         and (tool['name'] not in OPTIONAL_TOOLS or shipped(OPTIONAL_TOOLS[tool['name']]))]
+
+# --- Plugins: tools other scripts add -------------------------------------------
+
+def plugin_path(folder):
+    """A plugin's folder: absolute, or relative to Documents (so one file
+    works on every device)."""
+    return folder if os.path.isabs(folder) else os.path.join(DOCUMENTS, folder)
+
+
+def import_fresh(module_name, folder=None):
+    """Import module_name fresh, so an edited plugin shows at once. With a
+    folder, that folder goes first on sys.path."""
+    if folder:
+        path = plugin_path(folder)
+        if not os.path.isdir(path):
+            raise RuntimeError('%s is not there' % path)
+        if path not in sys.path:
+            sys.path.insert(0, path)
+    root = module_name.split('.')[0]
+    for loaded in [name for name in sys.modules if name.split('.')[0] == root]:
+        del sys.modules[loaded]
+    return importlib.import_module(module_name)
+
+
+def plugin_tool(spec, group, default_function):
+    """One tool from a plugin file: name, module, and optionally folder,
+    function (called with args when the tool opens), emoji, what, about,
+    home and group."""
+    function_name = spec.get('function', default_function)
+    arguments = list(spec.get('args', []))
+
+    def open_it():
+        module = import_fresh(spec['module'], spec.get('folder'))
+        return getattr(module, function_name)(*arguments)
+
+    return {'name': spec['name'], 'emoji': spec.get('emoji', '🧰'),
+            'what': spec.get('what', 'tool'), 'home': spec.get('home', 'over the code'),
+            'about': spec.get('about', ''), 'open': open_it,
+            'in_group': spec.get('group', group)}
+
+
+def provided_tools(spec, group):
+    """Several tools from one plugin file: its module's `tools` function
+    returns tool dicts (with open), each optionally naming a group."""
+    module = import_fresh(spec['module'], spec.get('folder'))
+    found = []
+    for tool in getattr(module, spec['tools'])():
+        tool = dict(tool)
+        named_group = tool.pop('group', None)
+        tool['in_group'] = named_group if isinstance(named_group, str) else group
+        tool.setdefault('emoji', '🧰')
+        tool.setdefault('what', 'tool')
+        tool.setdefault('home', 'over the code')
+        tool.setdefault('about', '')
+        found.append(tool)
+    return found
+
+
+def plugin_tools():
+    """Every tool the plugin folders add. A file that fails is reported and
+    skipped: the hub must open either way."""
+    found = []
+    for folder, group, default_function in PLUGIN_FOLDERS:
+        try:
+            names = sorted(os.listdir(folder))
+        except OSError:
+            continue
+        for name in names:
+            if not name.endswith('.json'):
+                continue
+            try:
+                with open(os.path.join(folder, name), encoding='utf-8') as handle:
+                    spec = json.load(handle)
+                if 'tools' in spec:
+                    found.extend(provided_tools(spec, group))
+                else:
+                    found.append(plugin_tool(spec, group, default_function))
+            except Exception:
+                print('Toolbox: could not load the plugin %s' % name)
+                traceback.print_exc()
+    return found
+
+
+def with_plugins(built_in, plugins):
+    """Toolbox's tools, then plugin tools, then one card per group."""
+    loose = [tool for tool in plugins if not tool.get('in_group')]
+    groups = {}
+    for tool in plugins:
+        if tool.get('in_group'):
+            groups.setdefault(tool['in_group'], []).append(tool)
+    cards = []
+    for name, members in groups.items():
+        look = GROUP_CARDS.get(name, {})
+        cards.append({'name': name, 'emoji': look.get('emoji', DEFAULT_GROUP_EMOJI),
+                      'home': name.lower(), 'group': members, 'open': None,
+                      'about': look.get('about', '%s added by other scripts. '
+                                                 'Tap to see them.' % name)})
+    return built_in + loose + cards
+
+
+TOOLS = with_plugins(BUILT_IN, plugin_tools())
 
 
 def every_tool():

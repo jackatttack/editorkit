@@ -51,7 +51,7 @@ def _repin(event=None):
 
 
 @_app.on_main
-def pin(view, line, x=None):
+def pin_view(view, line, x=None):
     """Pin a ui.View (sized by you) to line; x None keeps it at the right edge."""
     text_view = _app.text_view()
     if text_view is None:

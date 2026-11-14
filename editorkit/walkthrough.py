@@ -23,7 +23,7 @@ import traceback
 
 import ui
 
-from . import layouts, tiles, trace
+from . import layouts, native, trace
 from .windows import Window
 
 
@@ -52,11 +52,11 @@ class Step:
         self.where = where           # 'editor' or 'console': where to ask from
 
 
-class Board(tiles.Tile):
+class Board(native.Tile):
     """The runner's page: the step and what it asks."""
 
     def __init__(self, window):
-        tiles.Tile.__init__(self, window)
+        native.Tile.__init__(self, window)
         self.label = ui.Label(font=TEXT_FONT)
         self.label.number_of_lines = 0
         self.label.text_color = self.palette.text

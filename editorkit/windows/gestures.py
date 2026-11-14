@@ -131,7 +131,7 @@ class Gestures(object):
         under = places.line_under(self.pin)
         if under != self.under:
             self.under = under
-            self.emit('under', under)
+            self._emit('under', under)
 
     # ==== Holding the panel ====
 

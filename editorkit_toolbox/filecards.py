@@ -1,4 +1,4 @@
-"""File cards: one picture of a file wherever the deck shows one.
+"""File cards: one picture of a file wherever Toolbox shows one.
 
     card = filecards.file_card(path, item, view_item, where='projects/editorkit')
     page.grid([card, ...], min_width=filecards.CARD_WIDTH)

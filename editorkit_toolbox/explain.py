@@ -40,12 +40,13 @@ import time
 import traceback
 
 import editorkit as ek
-import codesense
-from codesense import units
+from editorkit import codesense
+from editorkit.codesense import units
+from editorkit.web import prose
 
 from . import docs, docs_index
 from . import explain_subject as subjects
-from . import lens_detect as detect
+from . import detect
 from .docs import card_kit, layouts, web_tiles   # the card kit, layouts and tiles Docs uses
 from .lookup import describe, reachable, short_signature
 
@@ -222,7 +223,8 @@ def last_part(subject):
 # --- Facets -----------------------------------------------------------------
 
 def header(tool, subject, page):
-    """The name, its signature and kind, ⤵ to insert; Load, did you mean."""
+    """The name as a heading, its kind and where it is, its signature (the
+    docs' own, else Python's); ⤵ to insert; Load, did you mean."""
     thing = tool.thing
     if subject.kind == 'lines':
         title = '%d lines selected' % (subject.text.strip('\n').count('\n') + 1)
@@ -239,27 +241,25 @@ def header(tool, subject, page):
     where = tool.scope_names(subject.line)
     if where:
         bits.append(' › '.join(where))
-    body = ''
+    blocks = [prose.heading(title, 1), prose.meta(' · '.join(bits))]
     if subject.kind == 'colour':
-        body += '<div class="xp-swatch" style="background: %s"></div>' % colour_css(subject.value)
+        blocks.append('<div class="xp-swatch" style="background: %s"></div>'
+                      % colour_css(subject.value))
     signature = tool.docs_signature()
     if signature:
-        body += '<div class="dc-sig">%s</div>' % signature
+        blocks.append('<div class="ek-sig">%s</div>' % signature)
     elif thing is not None and callable(thing) and short_signature(thing):
-        body += card_kit.code(last_part(subject) + short_signature(thing), lines=3)
+        blocks.append('<div class="ek-sig"><span class="name">%s</span>%s</div>'
+                      % (escape(last_part(subject)), escape(short_signature(thing))))
     elif subject.kind in ('number', 'colour'):
-        body += card_kit.code(subject.text, lines=1)
-    body += '<div class="xp-where">%s</div>' % escape(' · '.join(bits))
-    actions = []
+        blocks.append(prose.code(subject.text, copy=False))
+    page.prose(*blocks)
+    buttons = []
     if thing is not None:
         name = last_part(subject)
-        actions.append(card_kit.Action('⤵', ('insert', name)))
+        buttons.append(card_kit.Action('⤵ Insert %s' % name, ('insert', name)))
         if callable(thing):
-            actions.append(card_kit.Action('⤵()', ('insert', call_text(name, tool.inputs))))
-    colour = colour_of(kind if thing is not None else subject.kind)
-    page.grid([card_kit.Card(title, body=body, colour=colour, actions=actions)],
-              min_width=CARD_WIDTH)
-    buttons = []
+            buttons.append(card_kit.Action('⤵ Insert call', ('insert', call_text(name, tool.inputs))))
     if thing is None and subject.dotted:
         root = subject.dotted.split('.', 1)[0]
         if root not in sys.modules and importable(root):
@@ -307,54 +307,48 @@ def inputs(tool, subject, page):
 
 
 def docs_facet(tool, subject, page):
-    """The docs, in full, links live; else your own code; else the docstring."""
-    cards = []
+    """The docs, in full, links live, in the docs' own look; else your own
+    code; else the docstring or the value."""
     if subject.kind == 'page':
         page_path, anchor, focus = subject.value
         try:
             _, body = page_body(docs.read_page(page_path), '' if focus else anchor)
         except Exception:
             body = ''
-        text = tool.rich(body, page_path, page) if body else 'Nothing found at this link.'
-        cards.append(card_kit.Card(docs_title(page_path), body='<div class="dc">%s</div>' % text,
-                                   colour=KIND_COLOURS['docs']))
-        one_column(page, cards)
+        text = tool.rich(body, page_path, page) if body else prose.text('Nothing found at this link.')
+        page.prose(prose.meta(docs_title(page_path)), text)
         return
     if tool.entry is not None and tool.entry_body:
-        cards.append(card_kit.Card(docs_title(tool.entry.page),
-                                   body='<div class="dc">%s</div>'
-                                   % tool.rich(tool.entry_body, tool.entry.page, page),
-                                   colour=KIND_COLOURS['docs']))
-        one_column(page, cards)
+        page.prose(prose.meta(docs_title(tool.entry.page)),
+                   tool.rich(tool.entry_body, tool.entry.page, page))
         page.buttons([card_kit.Action('📖 Read on in the docs',
                                       ('read', tool.entry.page, tool.entry.name))])
         return
     name = last_part(subject)
+    cards = []
     if name and tool.text and subject.kind != 'lines':
         for line, index, text in subjects.definitions(tool.text, name)[:2]:
             stripped = text.lstrip()
             kind = ('class' if stripped.startswith('class') else
                     'function' if stripped.startswith(('def', 'async')) else 'value')
             cards.append(card_kit.Card('Your code · line %d' % line, item=('jump', index),
-                                       body=card_kit.code(subjects.block_at(tool.text, line,
-                                                                            SOURCE_LIMIT),
-                                                          lines=SOURCE_LINES),
+                                       body=prose.article(prose.code(
+                                           subjects.block_at(tool.text, line, SOURCE_LIMIT))),
                                        colour=colour_of(kind)))
-    thing = tool.thing
-    if not cards and thing is not None:
-        if kind_of(thing).endswith('value'):
-            cards.append(card_kit.Card('Value', body='<pre class="xp-doc">%s</pre>'
-                                       % escape(repr(thing)[:VALUE_CHARACTERS]),
-                                       colour=KIND_COLOURS['value']))
-        else:
-            text = inspect.getdoc(thing) or ''
-            if text:
-                if len(text) > DOC_CHARACTERS:
-                    text = text[:DOC_CHARACTERS - 1] + '…'
-                cards.append(card_kit.Card('Docstring', body='<pre class="xp-doc">%s</pre>'
-                                           % escape(text), colour=colour_of(kind_of(thing))))
     if cards:
         one_column(page, cards)
+        return
+    thing = tool.thing
+    if thing is None:
+        return
+    if kind_of(thing).endswith('value'):
+        page.prose(prose.meta('Value'), prose.code(repr(thing)[:VALUE_CHARACTERS]))
+        return
+    text = inspect.getdoc(thing) or ''
+    if text:
+        if len(text) > DOC_CHARACTERS:
+            text = text[:DOC_CHARACTERS - 1] + '…'
+        page.prose(prose.meta('Docstring'), prose.text(text))
 
 
 def examples(tool, subject, page):
@@ -375,7 +369,7 @@ def examples(tool, subject, page):
         return
     page.note('EXAMPLES · ⤵ inserts one')
     one_column(page, [card_kit.Card('Example %d' % number,
-                                    body=card_kit.code(block, lines=EXAMPLE_LINES),
+                                    body=prose.article(prose.code(block)),
                                     colour=KIND_COLOURS['example'],
                                     actions=[card_kit.Action('⤵ Insert',
                                                              ('insert', subjects.insertable(block)))])
@@ -440,7 +434,7 @@ def more(tool, subject, page):
         for found in elsewhere:
             path, line = found['path'], found.get('line')
             block = read_block(path, line) if line else ''
-            body = card_kit.code(block or found.get('description', ''), lines=SOURCE_LINES)
+            body = prose.article(prose.code(block or found.get('description', '')))
             body += '<div class="xp-where">%s</div>' % escape(
                 '%s · line %s' % (os.path.basename(path), line))
             cards.append(card_kit.Card(found.get('name', '?'),

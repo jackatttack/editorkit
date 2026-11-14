@@ -23,7 +23,7 @@ import ui
 
 from .. import codeview
 from ... import trace
-from ...tiles.base import Tile
+from ...native.base import Tile
 
 KEYBOARD_DISMISS_ON_DRAG = 1     # UIScrollViewKeyboardDismissModeOnDrag
 
@@ -346,6 +346,16 @@ class Code(Tile):
             return True
         rest = url[len(codeview.LINK_SCHEME):]
         trace.note('code link', rest)
+        if rest.startswith(codeview.COPY_PATH):
+            # ⧉ Copy on a code block: straight to the clipboard, through
+            # UIPasteboard (editorkit.clip), never the clipboard module.
+            from urllib.parse import unquote
+            from ... import clip
+            try:
+                clip.set_text(unquote(rest[len(codeview.COPY_PATH):]))
+            except Exception as error:
+                print('editorkit: copy failed: %r' % (error,))
+            return False
         # A tap in the keyboard's place: take focus back from the web view now
         # and on the clock for a moment after (see keep_dock_focus).
         self.dock_refocus_until = time.time() + DOCK_REFOCUS_SECONDS

@@ -8,14 +8,14 @@
     ⌨                  into the keyboard's place; folded there, it comes
                        back there from the tray
 
-Built on editorkit's card kit (editorkit.cards, tiles.Cards). Editing opens
+Built on editorkit's card kit (editorkit.cards, native.Cards). Editing opens
 the TextBox (ek.edit_text) with the title in its name field and the live
 fields as chips. Live fields work when typed: ${cursor} places the cursor;
 ${date}, ${time} and ${clipboard} are filled in.
 
-The library is its own file (LIBRARY_PATH), kept by deck/snippets_core.py
+The library is its own file (LIBRARY_PATH), kept by editorkit_toolbox/snippets_core.py
 (a vendored copy of the snippet keyboard's core: atomic writes and a .bak
-backup). A missing library is seeded from deck/snippet_seeds.py.
+backup). A missing library is seeded from editorkit_toolbox/snippet_seeds.py.
 
     from editorkit_toolbox import snippets
     snippets.open_snippets()
@@ -25,13 +25,13 @@ import sys
 import time
 
 import editorkit as ek
-from editorkit import clip, layouts, tiles
+from editorkit import clip, layouts, native
 from editorkit.web import cards
 from editorkit.web import tiles as web_tiles
 
 from . import snippet_library, snippet_seeds
 
-from . import snippets_core      # vendored: the deck needs nothing outside its folder
+from . import snippets_core      # vendored: Toolbox needs nothing outside its folder
 
 
 # --- Settings -------------------------------------------------------------

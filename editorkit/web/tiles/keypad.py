@@ -17,7 +17,7 @@ place).
 """
 import html
 
-from ...tiles.base import palette_for
+from ...native.base import palette_for
 from .. import codeview
 from .cards import Cards
 

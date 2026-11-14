@@ -5,6 +5,7 @@ its TODO comments (the ones at the bottom of this file), your open windows
 in the same search, notes beside each TODO, a copied report and a saved
 one. The last step puts it all back.
 """
+import json
 import os
 
 import editorkit as ek
@@ -14,6 +15,7 @@ from editorkit.lessons import Lesson
 lesson = Lesson('Build a tool', __file__)
 HERE = os.path.dirname(os.path.abspath(__file__))
 DOCUMENTS = os.path.expanduser('~/Documents')
+TOOLS_FOLDER = os.path.join(DOCUMENTS, 'Toolbox', 'tools')   # the hub's plugin files
 MARK = '# TODO'
 state = {}
 
@@ -32,10 +34,9 @@ def todo_rows():
 def jump(item):
     """A tapped row: a TODO goes to its line, a window comes forward."""
     if isinstance(item, tuple):
-        text = ek.text() or ''
-        index = sum(len(line) + 1 for line in text.split('\n')[:item[0] - 1])
-        ek.select(index)
-        ek.reveal(index)
+        start, _end = ek.line_range(item[0])
+        ek.select(start)
+        ek.reveal(start)
     else:
         item.show()
 
@@ -49,7 +50,7 @@ def searchable():
 
     Try it: each TODO at the bottom of this file is a row. Type to filter;
     tap one to jump there."""
-    window = ek.Window('TODOs', emoji='✅', key='lesson-todos', owner=lesson.window)
+    window = lesson.new_window('TODOs', emoji='✅')
     todos = sources.ListSource('In this script', todo_rows,
                                lambda todo: sources.Row(str(todo[0]), todo[1], todo))
     layouts.query_list(window, 'Filter TODOs', sources=[todos], on_pick=jump)
@@ -63,7 +64,7 @@ def two_sources():
     too: a tap brings one forward.
 
     Try it, then type a window's name."""
-    window = ek.Window('TODOs', emoji='✅', key='lesson-todos', owner=lesson.window)
+    window = lesson.new_window('TODOs', emoji='✅')
     todos = sources.ListSource('In this script', todo_rows,
                                lambda todo: sources.Row(str(todo[0]), todo[1], todo))
     windows = sources.ListSource('Open windows', ek.live_windows,
@@ -112,21 +113,42 @@ def save_report():
     return 'Saved %s.' % os.path.basename(path)
 
 
+@lesson.step('Join the hub')
+def join_hub():
+    """Your tool joins Toolbox's hub through a plugin file: a JSON file in
+    Documents/Toolbox/tools/ naming the tool, the folder its script is in,
+    the module, and the function that opens it. The finished TODO tool is
+    examples/tool_todos.py, and this step writes its plugin file.
+
+    Try it, then open the hub (wrench, then Toolbox): ✅ TODOs is in Tools."""
+    plugin = {'name': 'TODOs', 'emoji': '✅', 'what': 'in the open script',
+              'folder': 'Toolbox/examples', 'module': 'tool_todos', 'function': 'main',
+              'about': 'Every TODO comment in the open script: type to filter, tap to '
+                       'go to its line. Built in Lesson 10.'}
+    os.makedirs(TOOLS_FOLDER, exist_ok=True)
+    path = os.path.join(TOOLS_FOLDER, 'todos.json')
+    with open(path, 'w', encoding='utf-8') as handle:
+        json.dump(plugin, handle, indent=2)
+    state['plugin'] = path
+    return 'Wrote Toolbox/tools/todos.json: the hub lists TODOs next time it opens.'
+
+
 @lesson.step('Put it all back')
 def put_back():
     """ek.clear_annotations() takes every note away, and fileops.trash moves
-    the reports into Documents/_to_delete rather than deleting them. A tool
+    the reports and the plugin file into Documents/_to_delete rather than
+    deleting them (Join the hub writes the plugin again any time). A tool
     closes only its own windows: ek.close_windows() would close Toolbox's
     too. Done ✓ closes the lesson's.
 
     Try it, then Done ✓."""
     ek.clear_annotations()
     moved = 0
-    for path in state.pop('reports', []):
-        if os.path.exists(path):
+    for path in state.pop('reports', []) + [state.pop('plugin', None)]:
+        if path and os.path.exists(path):
             fileops.trash(path, DOCUMENTS)
             moved += 1
-    return 'Notes cleared; %d report%s moved to _to_delete.' % (moved, '' if moved == 1 else 's')
+    return 'Notes cleared; %d file%s moved to _to_delete.' % (moved, '' if moved == 1 else 's')
 
 
 # --- The TODOs this lesson's tool finds -------------------------------------

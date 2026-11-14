@@ -74,12 +74,12 @@ class FindBar(ui.View):
     def palette(self):
         """The window's palette (the shared one once shown), so the bar
         follows the theme, light or dark."""
-        from editorkit.tiles.base import palette_for
+        from editorkit.native.base import palette_for
         return palette_for(self.window)
 
     def make_field(self, placeholder):
-        from editorkit.tiles.base import style_field
-        from editorkit.tiles.field import tint_placeholder
+        from editorkit.native.base import style_field
+        from editorkit.native.field import tint_placeholder
         field = style_field(ui.TextField(placeholder=placeholder), self.palette())
         tint_placeholder(field, self.palette().dim)
         field.delegate = self
@@ -98,7 +98,7 @@ class FindBar(ui.View):
 
     def restyle(self):
         """The theme changed: re-apply the palette's colours."""
-        from editorkit.tiles.field import tint_placeholder
+        from editorkit.native.field import tint_placeholder
         palette = self.palette()
         for field in (self.term_field, self.replace_field):
             field.background_color = palette.background
@@ -290,7 +290,7 @@ def open_find(path=None, on_close=None, term=None):
                        size=(0, COMPACT_HEIGHT), backdrop='tinted')
     bar = FindBar(window)
     bar.start_term = term            # Search's ⤡: carry the term over
-    window.find_bar = bar            # for the deck's checks (checks/regression.py)
+    window.find_bar = bar            # for Toolbox's checks (checks/regression.py)
     window.add_page('Find', bar)
     window.add_button(WIDEN_ICON, lambda _window: bar.widen(), name='widen')
     window.add_button(REPLACE_ICON, lambda _window: bar.show_replace(not bar.replacing),

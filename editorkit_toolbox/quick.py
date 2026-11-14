@@ -6,14 +6,14 @@ to make it the open tab, after which the full set appears by itself.
 
 One compact row of buttons per section on editorkit's card kit, so every
 tool fits one screen and a redraw never leaves you scrolling (pinch to zoom). ? in the header turns on help
-mode: a tap then explains the tool (tiles.Card). Clear and
+mode: a tap then explains the tool (native.Card). Clear and
 Delete need a second tap within CONFIRM_SECONDS. Tools that change the
 script, or open one, bring the editor forward.
 
-The operations come from deck/scriptops.py (rename the tab follows, delete
+The operations come from editorkit_toolbox/scriptops.py (rename the tab follows, delete
 closing the tab, script URLs, the scratch pad; ported from Editor Deck).
 Replace with clipboard shows what would change as a card page
-(deck/diff_rows.py) with Replace and Cancel. The clipboard goes through
+(editorkit_toolbox/diff_rows.py) with Replace and Cancel. The clipboard goes through
 editorkit.clip, never the clipboard module.
 
     from editorkit_toolbox import quick
@@ -23,7 +23,7 @@ import os
 import time
 
 import editorkit as ek
-from editorkit import clip, layouts, tiles
+from editorkit import clip, layouts, native
 from editorkit.web import cards, codeview
 from editorkit.web import tiles as web_tiles
 

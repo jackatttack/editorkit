@@ -44,7 +44,7 @@ def pair():
     the view is the tool.
 
     Try it: tap words and watch the view list them. Fold the keys, then ⌨."""
-    view = ek.Window('Typed', emoji='📝', key='lesson-typed', owner=lesson.window)
+    view = lesson.new_window('Typed', emoji='📝')
     view.add_page('Typed', 'Nothing typed yet.')
     typed = []
 
@@ -74,7 +74,7 @@ def fill_above():
     Try it: the view fills the screen above the words."""
     if 'make_keys' not in state:
         return 'Try step 2 first: it makes the keys.'
-    view = ek.Window('Board', emoji='🎯', key='lesson-board', owner=lesson.window)
+    view = lesson.new_window('Board', emoji='🎯')
     view.add_page('Board', 'I fill the space above the keys.')
     ek.Pair(view, state['make_keys'], fill=True).show()
 
