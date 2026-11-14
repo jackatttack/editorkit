@@ -2,7 +2,7 @@
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
  "version": "0.5.6",
- "staged": "2026-11-14 22:20",
+ "staged": "2026-11-14 22:49",
  "files": [
   [
    "LICENSE",
@@ -10,7 +10,7 @@
   ],
   [
    "README.md",
-   8202
+   8228
   ],
   [
    "editorkit/__init__.py",
@@ -683,6 +683,10 @@
   [
    "lessons/10_build_a_tool.py",
    6616
+  ],
+  [
+   "media/lessons.gif",
+   558959
   ],
   [
    "pythonista_lessons/01_ui.py",

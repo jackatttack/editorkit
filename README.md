@@ -5,7 +5,7 @@ window appears over the editor. Each step explains itself, selects its own
 code so you can see it, and runs when you tap ▶ Try it. Ten lessons take you
 from a first window to a tool of your own in Toolbox's hub.
 
-<!-- GIF here: a lesson stepping through its own code (media/lesson.gif) -->
+![Lesson 1 running over its own code: ▶ Try it opens a window, Next ▶ moves on](media/lessons.gif)
 
 It comes as two things:
 
