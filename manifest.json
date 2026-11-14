@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.5.5",
- "staged": "2026-11-14 21:52",
+ "version": "0.5.6",
+ "staged": "2026-11-14 22:14",
  "files": [
   [
    "LICENSE",
@@ -278,7 +278,11 @@
   ],
   [
    "editorkit/web/tiles/__init__.py",
-   577
+   689
+  ],
+  [
+   "editorkit/web/tiles/browser.py",
+   6047
   ],
   [
    "editorkit/web/tiles/card.py",
@@ -486,7 +490,7 @@
   ],
   [
    "editorkit_toolbox/packages_tool.py",
-   15715
+   16270
   ],
   [
    "editorkit_toolbox/quick.py",
@@ -534,11 +538,15 @@
   ],
   [
    "editorkit_toolbox/tools.py",
-   12707
+   13196
   ],
   [
    "editorkit_toolbox/traceback_card.py",
    4433
+  ],
+  [
+   "editorkit_toolbox/web_tool.py",
+   4459
   ],
   [
    "examples/editor_annotate_and_highlight.py",

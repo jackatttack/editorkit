@@ -99,6 +99,11 @@ def open_find():
     return find.open_find()
 
 
+def open_web():
+    from . import web_tool
+    return web_tool.open_web()
+
+
 def open_tidy():
     import editorkit as ek
     return ek.tidy()
@@ -167,6 +172,12 @@ BUILT_IN = [
               'a name in the field to explain that instead. On no name, it says what '
               'the line is. Its 📖 Docs tab searches and reads Pythonista\'s own '
               'documentation (view, add_subview, os.path); the field searches there.'},
+    {'name': 'Web', 'emoji': '🌐', 'what': 'browse the web',
+     'home': 'over the code', 'open': open_web,
+     'about': 'A browser over your code. Type an address, or words to search, in the '
+              'field at the top. ◀ goes back (or swipe from the left edge), ↻ reloads, '
+              '↗ opens the page in Safari, ⧉ copies its link. Packages opens PyPI '
+              'pages here too.'},
 
 ]
 

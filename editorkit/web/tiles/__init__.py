@@ -6,7 +6,9 @@
     Feed     a Code of entries as cards (the Console)
     Keypad   pages of keys (as tiles.Keypad), for the keyboard's place
     Tape     the calculator tape
+    Browser  a real web page (WKWebView); browse(url) opens it in a window
 """
+from .browser import Browser, browse
 from .card import Card
 from .cards import Cards
 from .code import Code

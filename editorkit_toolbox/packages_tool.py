@@ -42,6 +42,9 @@ NOT_OURS = ("{name} is already installed outside Toolbox (by Pipista, StaSh or b
             "so Toolbox will not overwrite its files. It shows under Installed, read-only; "
             "to manage it here, remove it with the tool that installed it, then install it here.")
 CONFIRM_SECONDS = 3.0        # a second 🗑 within this removes
+PYPI_ICON = '🌐'             # opens a package's PyPI page in a browser window
+PYPI_PAGE = 'https://pypi.org/project/%s/'
+PYPI_WINDOW_KEY = 'deck-packages-pypi'   # one browser window, reused for each package
 COLOURS = {'tested': '#5FD3BC', 'candidate': '#F5C26B', 'pypi': '#4FA3FF',
            'managed': '#8E6CEF'}
 HOW = ('Tap a package to inspect it: you see every package it would install '
@@ -152,6 +155,7 @@ def plan_page(name, inspection, plan, message='', busy=False):
     page.heading('%s %s' % (name, details.get('version') or ''))
     if details.get('summary'):
         page.note(details['summary'])
+    page.buttons([card_kit.Action('🌐 %s on PyPI' % name, ('pypi_page', name))])
     latest = details.get('latest_version')
     if latest and details.get('version') and latest != details['version']:
         page.note('The newest version that runs on this Python. The latest, %s, '
@@ -194,7 +198,8 @@ def installed_page(managed, environment_groups, armed=None, message=''):
             cards.append(card_kit.Card(
                 name, colour=COLOURS['managed'],
                 body=card_kit.text(str(record.get('version') or '') if isinstance(record, dict) else ''),
-                actions=[card_kit.Action('Sure?' if is_armed else '🗑', ('remove', name),
+                actions=[card_kit.Action(PYPI_ICON, ('pypi_page', name)),
+                         card_kit.Action('Sure?' if is_armed else '🗑', ('remove', name),
                                          armed=is_armed)]))
         page.grid(cards, min_width=CARD_WIDTH)
     else:
@@ -282,6 +287,10 @@ class PackagesTool:
         elif kind == 'module':
             from . import explain
             explain.open_explain().hold_name(item[1])
+            return
+        elif kind == 'pypi_page':
+            web_tiles.browse(PYPI_PAGE % item[1], title=item[1], key=PYPI_WINDOW_KEY,
+                             owner=self.window)
             return
         self.refresh()
 
