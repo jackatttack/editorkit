@@ -2,7 +2,7 @@
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
  "version": "0.5.6",
- "staged": "2026-11-14 22:14",
+ "staged": "2026-11-14 22:20",
  "files": [
   [
    "LICENSE",
@@ -10,7 +10,7 @@
   ],
   [
    "README.md",
-   8022
+   8202
   ],
   [
    "editorkit/__init__.py",

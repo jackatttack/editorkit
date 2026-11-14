@@ -10,7 +10,7 @@ from a first window to a tool of your own in Toolbox's hub.
 It comes as two things:
 
 - **Toolbox**, an app that lives over Pythonista's editor: files, search,
-  snippets, packages, a console, docs and more, each a tap away.
+  snippets, packages, a console, docs, the web and more, each a tap away.
 - **editorkit**, the library Toolbox is built with: windows over the
   editor, pages of cards, and the editor itself (text, selections,
   highlights, themes). The lessons teach it.
@@ -63,13 +63,14 @@ Tap the wrench, then **Toolbox**. The 🏡 hub opens over your code.
 | 📟 | Console | Run the script, or just the selection, and see its output. |
 | ⚡ | Quick | One-tap actions on the open script. |
 | ❓ | Explain | What is the name or line under the cursor? Signature, docs, uses. Its 📖 Docs tab searches Pythonista's own documentation. |
+| 🌐 | Web | A browser over your code: an address or a search in the field at the top; ◀ ↻ ↗ Safari, ⧉ copy link. |
 
 **Searching.** The hub's Find is the one search across files: it finds
 file names and code under a folder, in sections. Find in script is the
 quick bar for the file you are in; its ⤢ carries your search over to the
 hub's Find, and Files' 🔍 opens the hub's Find in the folder you are in.
 
-**Packages** shows every package it would install before anything
+**Packages** opens any package's PyPI page with 🌐, and shows every package it would install before anything
 changes. Each download's SHA-256 is checked against the one PyPI
 publishes (a package without one is refused), and nothing runs `setup.py`.
 Toolbox removes only what it installed; anything installed another way
