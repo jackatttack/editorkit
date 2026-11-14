@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.5.2",
- "staged": "2026-11-14 19:55",
+ "version": "0.5.3",
+ "staged": "2026-11-14 20:00",
  "files": [
   [
    "LICENSE",
@@ -10,7 +10,7 @@
   ],
   [
    "README.md",
-   7421
+   7486
   ],
   [
    "editorkit/__init__.py",
@@ -402,7 +402,7 @@
   ],
   [
    "editorkit_toolbox/docs.py",
-   11554
+   12910
   ],
   [
    "editorkit_toolbox/docs_index.py",
@@ -542,7 +542,7 @@
   ],
   [
    "editorkit_toolbox/tools.py",
-   12197
+   12277
   ],
   [
    "examples/editor_annotate_and_highlight.py",

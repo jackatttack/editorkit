@@ -48,6 +48,13 @@ START_ZOOM = 0.9
 STARTERS = ('ui', 'scene', 'editor', 'console', 'dialogs', 'objc_util', 'sound',
             'photos', 'clipboard', 'keyboard', 'keychain', 'motion', 'location',
             'notification', 'appex', 'canvas', 'speech', 'reminders', 'contacts')
+MODULE_CARD_WIDTH = 220      # the modules page: a grid of cards this wide at least
+MODULE_EMOJI = {'ui': '🪟', 'scene': '🎮', 'editor': '📝', 'console': '🖥', 'dialogs': '💬',
+                'objc_util': '🧬', 'sound': '🔊', 'photos': '🖼', 'clipboard': '📋',
+                'keyboard': '⌨️', 'keychain': '🔑', 'motion': '🧭', 'location': '📍',
+                'notification': '🔔', 'appex': '🧩', 'canvas': '🎨', 'speech': '🗣',
+                'reminders': '✅', 'contacts': '👥'}
+MODULE_COLOUR = '#2D9CDB'    # Explain's module colour
 KIND_NAMES = {'mod': 'module'}
 MEMBER_KINDS = ('method', 'attribute', 'classmethod', 'staticmethod', 'property')
 
@@ -156,6 +163,24 @@ def results_page(label, found, title=None):
     return page
 
 
+def modules_page(found):
+    """Pythonista's own modules as cards to browse: emoji, name, first
+    sentence. A tap opens the module's page (◀ Results comes back here)."""
+    page = card_kit.Page()
+    page.prose(prose.heading("Pythonista's modules", 2),
+               prose.text('Tap one to read it, or type above to search everything.'))
+    cards = []
+    for entry in found:
+        try:
+            summary = docs_index.summary(section_of(entry)[1])
+        except Exception:
+            summary = ''
+        cards.append(card_kit.Card('%s %s' % (MODULE_EMOJI.get(entry.name, '📦'), entry.name),
+                                   item=entry, body=card_kit.text(summary), colour=MODULE_COLOUR))
+    page.grid(cards, min_width=MODULE_CARD_WIDTH)
+    return page
+
+
 def detail_page(entry):
     """An entry as one article in the docs' own look (editorkit.web.prose):
     its name, its kind and page, the signature, then the text, every code
@@ -260,7 +285,7 @@ class DocsTool:
         else:
             found = docs_index.named(entries(), STARTERS)
             label = "Pythonista's modules"
-        self.last_results = results_page(label, found, title=None if term else label)
+        self.last_results = results_page(label, found) if term else modules_page(found)
         self.cards.show(self.last_results)
         self.set_title(TITLE)
 

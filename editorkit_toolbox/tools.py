@@ -127,15 +127,15 @@ BUILT_IN = [
      'about': 'Find in the open script: a slim bar over the code, matches marked '
               'in the editor, ◀ ▶ or Return to step. ⇄ shows Replace. To look '
               'through other files, ⤢ carries the term over to the hub\'s Find.'},
-    {'name': 'Scissors', 'emoji': '✂️', 'what': 'cut, copy, move lines',
-     'home': 'at the top of the code', 'open': open_scissors,
-     'about': 'Work on a range of lines from a bar at the top of the code. Type the '
-              'first and last line numbers, or select by hand and they follow. To '
-              'pick lines: ⌂ takes the cursor\'s line, ▣ the block around it (tap again '
-              'to widen), ⤓ one more line. Then copy or cut them, ⧉ duplicate, ↑ ↓ '
-              'move them, ⇥ ⇤ indent, # comment out, 🧩 save as a snippet, or ▶ run '
-              'them in the Console. The lines stay selected, so you can keep going. '
-              'With no range, it works on the cursor\'s line.'},
+    {'name': 'Scissors', 'emoji': '✂️', 'what': 'select and move code',
+     'home': 'in the keyboard\'s place (a small window on an iPad)', 'open': open_scissors,
+     'about': 'Select code fast and act on it. ◀ ▶ hop between words, ▲ ▼ to the word '
+              'above or below. ⊕ grows the selection: the word, the whole line, then '
+              'one more line a tap; ⊖ walks it back; ⟲ goes back to one word. Once '
+              'whole lines are selected the arrows change: ⇧ ⇩ move the lines, ⇤ ⇥ '
+              'indent. Hold an arrow or ⊕ to repeat. 📋 copy, ✂️ cut, 📥 paste (lines '
+              're-indented to fit), ▶ run in the Console, ? Explain the selection; ⋯ for '
+              'duplicate, comment, snippet and the script window. Undo covers every edit.'},
     {'name': 'Script', 'emoji': '📜', 'what': 'a script as a window',
      'home': 'over the code', 'open': open_script,
      'about': 'The open script in its own window, as code: tap a line to open it '

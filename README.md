@@ -56,7 +56,7 @@ Tap the wrench, then **Toolbox**. The 🏡 hub opens over your code.
 | 🎓 | Learn | The lessons, in order, and the examples. Start here. |
 | 📁 | Files | Folders and files as cards; tap a file to preview it. |
 | 🔍 | Find in script | A slim bar for the open script, with Replace. |
-| ✂️ | Scissors | Copy, cut, move, indent or comment a range of lines. |
+| ✂️ | Scissors | A pad in the keyboard's place: select words and lines fast, then move, indent, copy, cut, paste, run or explain them. |
 | 📜 | Script | A script in its own window: tap a line to go there. |
 | 🧩 | Snippets | Saved code to type at the cursor; over a hundred to start. |
 | 📦 | Packages | Install pure-Python packages from PyPI. |
