@@ -203,14 +203,16 @@ class Cards(Code):
         self.install_pinch()
         self.every(self.keep_pinch)
 
-    def show(self, page):
+    def show(self, page, keep_scroll=False):
         """Show a cards.Page, replacing what was there; a page identical to
-        the one showing is skipped (tools that refresh on their clock)."""
+        the one showing is skipped (tools that refresh on their clock).
+        keep_scroll=True keeps the page where it was scrolled (a redraw after
+        a tap); otherwise it starts at the top."""
         section = page.section()
         if section[0] == getattr(self, 'shown_page', None):
             return
         self.shown_page = section[0]
-        self.set_section(section)
+        self.set_section(section, keep_scroll=keep_scroll)
 
     def say(self, words):
         self.shown_page = None

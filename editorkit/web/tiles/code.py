@@ -145,11 +145,13 @@ class Code(Tile):
 
     # --- Showing ----------------------------------------------------------
 
-    def set_html(self, html):
+    def set_html(self, html, keep_scroll=False):
+        """Show html, replacing everything. The page goes back to the top
+        unless keep_scroll (a redraw that should stay where the user was)."""
         self.items = {}              # plain HTML: nothing left to pick
         self.shown_html = [html]
         self.current_go = None
-        self.run('setResults(%s)' % json.dumps(html))
+        self.run('setResults(%s, %s)' % (json.dumps(html), 'true' if keep_scroll else 'false'))
 
     def add_html(self, html):
         if html:
@@ -158,10 +160,11 @@ class Code(Tile):
 
     # --- Sections with items ------------------------------------
 
-    def set_section(self, section):
-        """Show one (html, items) section, replacing everything."""
+    def set_section(self, section, keep_scroll=False):
+        """Show one (html, items) section, replacing everything (keep_scroll:
+        see set_html)."""
         html, items = section
-        self.set_html(html)
+        self.set_html(html, keep_scroll=keep_scroll)
         self.items = dict(items)
 
     def add_section(self, section):

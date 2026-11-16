@@ -16,6 +16,7 @@ from .bar import Bar
 from .base import Tile, palette_for
 from .card import Card
 from .column import Column
+from .composer import Composer, ComposerSheet
 from .controls import Controls
 from .field import Field
 from .folders import Folders

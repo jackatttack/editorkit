@@ -402,10 +402,11 @@ function hangIndents() {
         codes[i].setAttribute('data-hung', '');
     }
 }
-function setResults(html) {
+function setResults(html, keepScroll) {
+    var y = window.scrollY;
     document.getElementById('results').innerHTML = html;
     hangIndents();
-    window.scrollTo(0, 0);
+    window.scrollTo(0, keepScroll ? y : 0);
 }
 function addResults(html) {
     document.getElementById('results').insertAdjacentHTML('beforeend', html);

@@ -2,7 +2,7 @@
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
  "version": "0.5.6",
- "staged": "2026-11-14 23:03",
+ "staged": "2026-11-16 11:52",
  "files": [
   [
    "LICENSE",
@@ -10,7 +10,7 @@
   ],
   [
    "README.md",
-   2166
+   2167
   ],
   [
    "docs/GUIDE.md",
@@ -134,7 +134,7 @@
   ],
   [
    "editorkit/native/__init__.py",
-   1014
+   1060
   ],
   [
    "editorkit/native/bar.py",
@@ -159,6 +159,10 @@
   [
    "editorkit/native/column.py",
    1621
+  ],
+  [
+   "editorkit/native/composer.py",
+   14544
   ],
   [
    "editorkit/native/controls.py",
@@ -262,7 +266,7 @@
   ],
   [
    "editorkit/web/codeview.py",
-   29143
+   29200
   ],
   [
    "editorkit/web/prose.py",
@@ -294,11 +298,11 @@
   ],
   [
    "editorkit/web/tiles/cards.py",
-   13314
+   13484
   ],
   [
    "editorkit/web/tiles/code.py",
-   16435
+   16728
   ],
   [
    "editorkit/web/tiles/feed.py",
