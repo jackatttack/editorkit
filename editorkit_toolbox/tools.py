@@ -17,6 +17,7 @@ import sys
 import traceback
 
 from . import find
+from . import hub_layout
 
 
 # --- Plugin folders -----------------------------------------------------------
@@ -33,7 +34,7 @@ PLUGIN_FOLDERS = (
 
 # How a group's card looks. A group not listed here gets the default emoji.
 GROUP_CARDS = {
-    'Games': {'emoji': '🎮',
+    'Games': {'emoji': '🎮', 'home': 'games',
               'about': 'Games played over the code, added by other projects. '
                        'Tap to see them.'},
 }
@@ -274,21 +275,28 @@ def broken_plugin(file_name, folder):
                      'then open the hub again.\n\n%s' % (file_name, folder, error)}
 
 
-def with_plugins(built_in, plugins):
-    """Toolbox's tools, then plugin tools, then one card per group."""
-    loose = [tool for tool in plugins if not tool.get('in_group')]
-    groups = {}
-    for tool in plugins:
-        if tool.get('in_group'):
-            groups.setdefault(tool['in_group'], []).append(tool)
+def with_plugins(built_in, plugins, moves=None):
+    """Toolbox's tools, then plugin tools, then one card per group.
+
+    moves ({tool name: group}, your hub settings: hub_layout) puts any
+    tool, Toolbox's own too, into a group; '' brings a plugin's tool out of
+    its group onto the home view."""
+    moves = moves or {}
+    loose, groups = [], {}
+    for tool in list(built_in) + list(plugins):
+        group = moves[tool['name']] if tool['name'] in moves else tool.get('in_group')
+        if group:
+            groups.setdefault(group, []).append(dict(tool, in_group=group))
+        else:
+            loose.append(dict(tool, in_group=None) if tool.get('in_group') else tool)
     cards = []
     for name, members in groups.items():
         look = GROUP_CARDS.get(name, {})
         cards.append({'name': name, 'emoji': look.get('emoji', DEFAULT_GROUP_EMOJI),
-                      'home': name.lower(), 'group': members, 'open': None,
-                      'about': look.get('about', '%s added by other scripts. '
+                      'home': look.get('home', 'tools'), 'group': members, 'open': None,
+                      'about': look.get('about', '%s: tools gathered in one card. '
                                                  'Tap to see them.' % name)})
-    return built_in + loose + cards
+    return loose + cards
 
 
 def load():
@@ -297,7 +305,7 @@ def load():
     since Pythonista started shows without a restart. Returns the list, also
     kept as TOOLS."""
     global TOOLS
-    TOOLS = with_plugins(BUILT_IN, plugin_tools())
+    TOOLS = with_plugins(BUILT_IN, plugin_tools(), hub_layout.load()['groups'])
     return TOOLS
 
 

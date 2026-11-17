@@ -38,6 +38,7 @@ from editorkit.web import tiles as web_tiles
 from editorkit.native.base import Tile
 
 from . import tools
+from . import hub_layout
 
 
 # --- Settings -------------------------------------------------------------
@@ -130,6 +131,16 @@ KEEP_FIND_OPEN = True            # opening a found script keeps the hub and its 
 CLEAR_ICON = '⌫'                 # header, while Find holds a term: back to the home view
 INTRO = 'Tools over your code, built on editorkit. New here? 🎓 Learn has lessons and examples.'
 
+# ⚙️ Settings: your own home view, kept by hub_layout.
+SETTINGS_BUTTON = '⚙️ Settings'
+ARRANGE_NOTE = 'Reorganise: tap a card, then the card to swap it with. ✓ Done when finished.'
+ARRANGE_PICKED = 'now tap another'
+SETTINGS_SAVED_NOTE = ('Saved in Documents/Toolbox/hub_settings.json: delete it to put '
+                       'the hub back as it ships.')
+# Taps the Settings pages and Reorganise hand back (card_tapped sends them on).
+SETTINGS_KINDS = ('settings', 'settings-close', 'setting', 'setting-tool', 'move', 'hide',
+                  'new-group', 'arrange', 'arrange-done', 'reset')
+
 
 def tool_cards(specs):
     """One card per tool spec (tool_card): its emoji large beside where it
@@ -147,16 +158,24 @@ def recent_cards(paths):
             for path in paths]
 
 
-def hub_page(specs, helping=False, recent=()):
-    """The Tools page: on the home view a line on what Toolbox is with ℹ️
-    About, then the tool cards, then recent scripts as file cards."""
+def hub_page(specs, helping=False, recent=(), intro=True, arranging=False,
+             min_width=CARD_MIN_WIDTH):
+    """The Tools page: on the home view a line on what Toolbox is (unless
+    Settings hides it) with ℹ️ About and ⚙️ Settings, then the tool cards,
+    then recent scripts as file cards. While arranging: a note and ✓ Done."""
     page = card_kit.Page()
-    if helping:
-        page.note(HELP_NOTE)
-    if not any(spec['item'][0] == 'back' for spec in specs):    # home, not a group
-        page.note(INTRO)
-        page.buttons([card_kit.Action('ℹ️ About', ('about', None))])
-    page.grid(tool_cards(specs), min_width=CARD_MIN_WIDTH)
+    if arranging:
+        page.note(ARRANGE_NOTE)
+        page.buttons([card_kit.Action('✓ Done', ('arrange-done', None))])
+    else:
+        if helping:
+            page.note(HELP_NOTE)
+        if not any(spec['item'][0] == 'back' for spec in specs):    # home, not a group
+            if intro:
+                page.note(INTRO)
+            page.buttons([card_kit.Action('ℹ️ About', ('about', None)),
+                          card_kit.Action(SETTINGS_BUTTON, ('settings', None))])
+    page.grid(tool_cards(specs), min_width=min_width)
     if recent:
         page.heading(RECENT_HEADING)
         page.grid(recent_cards(recent), min_width=filecards.CARD_WIDTH)
@@ -343,6 +362,11 @@ class Hub:
         tools.load()                 # plugin files added since the last open show now
         self.help_mode = False
         self.group = None            # the group whose page shows (Games), or None
+        self.settings = hub_layout.load()   # your home view: order, groups, switches
+        self.settings_view = None    # ⚙️ Settings showing: 'main' or ('tool', name)
+        self.arranging = False       # Reorganise: card taps swap cards
+        self.swap_first = None       # the first card tapped while arranging
+        self.confirm_reset = False   # ↺ Reset layout tapped once
         self.window = ek.Window(TITLE, emoji=EMOJI, key=WINDOW_KEY, tray_home=True)
         self.window.add_button(HELP_ICON, self.toggle_help, name='help')
         # 🪟 Tidy lives in the header: always one tap away, not a tool.
@@ -434,19 +458,30 @@ class Hub:
         self.find.top.set_visible(self.tray_bar, bool(waiting))   # no space for an empty tray
         self.start_find(self.term, keep_expanded=True)
 
-    def refresh_grid(self):
-        """The home view, shown while the field is empty: a card per tool
-        (or a group's tools after a Back card), then recent scripts. Typing
-        replaces it with Find's sections; nothing to do while it does."""
+    def refresh_grid(self, keep_scroll=False):
+        """The home view, shown while the field is empty: a card per tool in
+        your order (or a group's tools after a Back card), then recent
+        scripts; or the Settings pages. Typing replaces it with Find's
+        sections; nothing to do while it does."""
         if self.term:
             return
+        if self.settings_view is not None:
+            html, items = self.settings_page().section()
+            self.results.set_section(('<div class="hf-grid">%s</div>' % html, items),
+                                     keep_scroll=keep_scroll)
+            return
+        settings = self.settings
         if self.group is not None:
             specs = [BACK_CARD] + [tool_card(tool) for tool in self.group['group']]
         else:
-            specs = [tool_card(tool) for tool in tools.TOOLS]
-        recent = recent_files()[:RECENT_ON_TOOLS] if self.group is None else ()
-        html, items = hub_page(specs, self.help_mode, recent).section()
-        self.results.set_section(('<div class="hf-grid">%s</div>' % html, items))
+            specs = [self.arranged_card(tool) for tool in hub_layout.arrange(tools.TOOLS, settings)]
+        showing_recent = self.group is None and not self.arranging
+        recent = recent_files()[:settings['recent']] if showing_recent else ()
+        html, items = hub_page(specs, self.help_mode, recent, intro=settings['intro'],
+                               arranging=self.arranging,
+                               min_width=hub_layout.card_width(settings)).section()
+        self.results.set_section(('<div class="hf-grid">%s</div>' % html, items),
+                                 keep_scroll=keep_scroll)
 
     def file_changed(self, event):
         path = event['new']
@@ -749,6 +784,12 @@ class Hub:
             scriptview.open_script_window(item.hit.path, item.hit.line)
             return
         kind, thing = item
+        if kind in SETTINGS_KINDS:
+            self.settings_tapped(kind, thing)
+            return
+        if self.arranging and kind in ('tool', 'group'):
+            self.arrange_tapped(thing['name'])
+            return
         if kind == 'about':
             from . import learn
             self.card.set_text(learn.ABOUT)
@@ -781,6 +822,181 @@ class Hub:
     def close_help(self, *ignored):
         if self.window.sheet is self.card:
             self.window.close_sheet()
+
+    # --- ⚙️ Settings: your own home view (hub_layout) ------------------------
+
+    def settings_tapped(self, kind, value):
+        """A tap on ⚙️ Settings, on its pages, or on Reorganise's ✓ Done.
+        The page stays where you were unless the view changes."""
+        keep = True
+        if kind == 'settings':
+            if self.help_mode:
+                self.toggle_help()
+            self.group = None
+            self.settings_view, self.confirm_reset, keep = 'main', False, False
+        elif kind == 'settings-close':
+            self.settings_view = None if self.settings_view == 'main' else 'main'
+            keep = False
+        elif kind == 'arrange':
+            self.settings_view, self.arranging, self.swap_first, keep = None, True, None, False
+        elif kind == 'arrange-done':
+            self.arranging, self.swap_first, keep = False, None, False
+        elif kind == 'reset':
+            if self.confirm_reset:             # the second tap
+                self.settings = hub_layout.reset()
+                tools.load()
+            self.confirm_reset = not self.confirm_reset
+        elif kind == 'setting':
+            key, chosen = value
+            self.settings[key] = chosen
+            hub_layout.save(self.settings)
+        elif kind == 'setting-tool':
+            self.settings_view, keep = ('tool', value), False
+        elif kind == 'move':
+            name, group = value
+            hub_layout.move(self.settings, name, group)
+            hub_layout.save(self.settings)
+            tools.load()                       # the groups are built from the settings
+        elif kind == 'hide':
+            name, hidden = value
+            hub_layout.set_hidden(self.settings, name, hidden)
+            hub_layout.save(self.settings)
+        elif kind == 'new-group':
+            self.ask_group_name(value)
+            return
+        self.refresh_grid(keep_scroll=keep)
+
+    def ask_group_name(self, name):
+        """＋ New group: its name from a text alert on a thread (dialogs wait
+        for the answer), then the move back on the main thread."""
+        import threading
+
+        def ask():
+            import dialogs
+            try:
+                group = dialogs.input_alert('New group', 'Move %s into a new group named:' % name,
+                                            '', 'Move')
+            except KeyboardInterrupt:          # Cancel
+                return
+            group = (group or '').strip()
+            if group:
+                ui.delay(lambda: self.settings_tapped('move', (name, group)), 0)
+        threading.Thread(target=ask, daemon=True).start()
+
+    def arrange_tapped(self, name):
+        """Reorganise: the first tap picks a card (again: lets go), the
+        second swaps the two and saves the order."""
+        if self.swap_first is None:
+            self.swap_first = name
+        elif self.swap_first == name:
+            self.swap_first = None
+        else:
+            hub_layout.swap(self.settings, tools.TOOLS, self.swap_first, name)
+            hub_layout.save(self.settings)
+            self.swap_first = None
+        self.refresh_grid(keep_scroll=True)
+
+    def arranged_card(self, tool):
+        """A home card; while arranging, every card is live and the picked
+        one says so."""
+        spec = tool_card(tool)
+        if self.arranging:
+            spec = dict(spec, dim=False)
+            if tool['name'] == self.swap_first:
+                spec.update(title='↔ ' + spec['title'], caption=ARRANGE_PICKED)
+        return spec
+
+    def placements(self):
+        """{tool name: the group it is in now}."""
+        found = {}
+        for card in tools.TOOLS:
+            for member in card.get('group', ()):
+                found[member['name']] = card['name']
+        return found
+
+    def group_names(self):
+        return [card['name'] for card in tools.TOOLS if 'group' in card]
+
+    def layout_entries(self):
+        """Every tool (groups opened out), then the group cards."""
+        return tools.every_tool() + [card for card in tools.TOOLS if 'group' in card]
+
+    def choice_actions(self, key, choices, current):
+        """One button per (value, label); the current one ticked."""
+        return [card_kit.Action(('✓ ' if value == current else '') + label, ('setting', (key, value)))
+                for value, label in choices]
+
+    def settings_page(self):
+        if self.settings_view == 'main':
+            return self.settings_main_page()
+        return self.settings_tool_page(self.settings_view[1])
+
+    def settings_main_page(self):
+        settings = self.settings
+        placed = self.placements()
+        page = card_kit.Page()
+        page.buttons([card_kit.Action('‹ Done', ('settings-close', None))])
+        page.heading('Layout')
+        page.note('Swap cards on the home view, or put the hub back as it ships.')
+        page.buttons([card_kit.Action('↔ Reorganise', ('arrange', None)),
+                      card_kit.Action('Tap again to reset' if self.confirm_reset else '↺ Reset layout',
+                                      ('reset', None))])
+        page.heading('Home view')
+        page.note('The intro line at the top')
+        page.buttons(self.choice_actions('intro', ((True, 'Show'), (False, 'Hide')), settings['intro']))
+        page.note('Recent scripts under the tools')
+        page.buttons(self.choice_actions(
+            'recent', [(count, str(count) if count else 'None') for count in hub_layout.RECENT_CHOICES],
+            settings['recent']))
+        page.note('Card size')
+        page.buttons(self.choice_actions(
+            'card_size', [(key, label) for key, label, width in hub_layout.CARD_SIZES],
+            settings['card_size']))
+        page.heading('Tools')
+        page.note('Tap a tool to move it into a group or hide it from the home view. '
+                  'Find still finds every tool.')
+        page.grid(tool_cards([self.settings_card(tool, placed) for tool in self.layout_entries()]),
+                  min_width=hub_layout.card_width(settings))
+        page.note(SETTINGS_SAVED_NOTE)
+        return page
+
+    def settings_card(self, tool, placed):
+        name = tool['name']
+        if 'group' in tool:
+            where = 'group of %d' % len(tool['group'])
+        elif name in placed:
+            where = 'in %s' % placed[name]
+        else:
+            where = 'home'
+        hidden = name in self.settings['hidden'] and name not in placed
+        return {'emoji': tool['emoji'], 'title': name,
+                'caption': where + (' · hidden' if hidden else ''), 'dim': hidden,
+                'item': ('setting-tool', name)}
+
+    def settings_tool_page(self, name):
+        """One tool or group: where it lives and whether the home view shows it."""
+        page = card_kit.Page()
+        page.buttons([card_kit.Action('‹ Settings', ('settings-close', None))])
+        tool = next((entry for entry in self.layout_entries() if entry['name'] == name), None)
+        if tool is None:
+            page.note('%s is not in Toolbox any more.' % name)
+            return page
+        page.heading('%s  %s' % (tool['emoji'], name))
+        if tool.get('about'):
+            page.note(tool['about'])
+        current = self.placements().get(name, '')
+        if 'group' not in tool:
+            page.note('Where it lives')
+            options = [('', 'Home')] + [(group, group) for group in self.group_names()]
+            page.buttons([card_kit.Action(('✓ ' if group == current else '') + label,
+                                          ('move', (name, group))) for group, label in options]
+                         + [card_kit.Action('＋ New group…', ('new-group', name))])
+        if not current:
+            hidden = name in self.settings['hidden']
+            page.note('On the home view')
+            page.buttons([card_kit.Action(('✓ ' if not hidden else '') + 'Shown', ('hide', (name, False))),
+                          card_kit.Action(('✓ ' if hidden else '') + 'Hidden', ('hide', (name, True)))])
+        return page
 
 
 def open_hub():
