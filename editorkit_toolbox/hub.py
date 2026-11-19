@@ -710,7 +710,10 @@ class Hub:
         term = term or ''
         self.find.field.set_value(term)
         self.start_find(term.strip())
-        self.find.field.focus()
+        # A term means results to browse, so the keyboard stays away until
+        # the field is tapped; an empty Find is there to be typed into.
+        if not term.strip():
+            self.find.field.focus()
 
     # --- Find: where to look ----------------------------------------------
 

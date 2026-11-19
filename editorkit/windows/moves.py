@@ -238,7 +238,7 @@ class Moves(object):
         start = places.in_root(places.editor(), places.frame_of(panel))
         self._hold_picture(start, layer='root')
         places.take_away(panel)
-        landing = self._console_frame()
+        landing = self._crossing_frame('console')
         panel.show_place('console')
         panel.frame = landing
         panel.alpha = 0.0
@@ -263,7 +263,7 @@ class Moves(object):
         start = places.in_root(container, places.frame_of(panel))
         self._hold_picture(start, layer='root')
         places.take_away(panel)
-        landing = self._float_frame()
+        landing = self._crossing_frame('editor')
         self._float_panel(landing, faded=False)
         panel.alpha = 0.0
         places.slide_console(False, look.CONSOLE_SLIDE_SECONDS)

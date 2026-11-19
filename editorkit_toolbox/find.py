@@ -130,7 +130,9 @@ class FindBar(ui.View):
     # --- Opening and closing --------------------------------------------
 
     def begin(self):
-        """On open: prefill with a one-line selection, find, focus the field."""
+        """On open: prefill with a one-line selection and find. The field
+        takes focus (and the keyboard) only when it opens empty: with a term
+        the hits are there to browse, and a tap in the field types."""
         chosen = ek.selection()
         if self.start_term:
             self.term_field.text, self.start_term = self.start_term, None
@@ -141,7 +143,8 @@ class FindBar(ui.View):
         self.anchor = chosen[0] if chosen else 0
         self.show_replace(self.replacing)    # the remembered size may be the tall one
         self.search(select=bool(self.term_field.text))
-        self.term_field.begin_editing()
+        if not self.term_field.text:
+            self.term_field.begin_editing()
 
     def end(self):
         ek.clear_highlights()

@@ -369,6 +369,22 @@ class Homes(object):
         _, _, width, height = self._float_frame()
         return self._clamp((look.EDGE, look.EDGE + 60, width, height), area)
 
+    def _crossing_frame(self, side):
+        """Its frame as it crosses into side ('console' or 'editor'): the size
+        it has now, at the spot it was last left on that side (kept inside
+        the area). Remembered there, so opening from a pin on that side
+        matches. Jack: a window keeps its size between console and editor."""
+        _, _, width, height = places.frame_of(self.panel)
+        if side == 'console':
+            x, y, _, _ = self._console_frame()
+            frame = self._clamp((x, y, width, height), places.console_size())
+            _remembered('console_frames')[self.key] = frame
+        else:
+            x, y, _, _ = self._float_frame()
+            frame = self._clamp((x, y, width, height))
+            _remembered('frames')[self.key] = frame
+        return frame
+
     def _fling_side(self, speed_x):
         """'right' or 'left' for a fling; a fling lines a pin or panel up with the
         edge it was flung at, and never crosses over (_check_edge does that)."""

@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.5.7",
- "staged": "2026-11-17 16:06",
+ "version": "0.5.8",
+ "staged": "2026-11-19 12:41",
  "files": [
   [
    "LICENSE",
@@ -338,7 +338,7 @@
   ],
   [
    "editorkit/windows/homes.py",
-   16522
+   17324
   ],
   [
    "editorkit/windows/look.py",
@@ -354,7 +354,7 @@
   ],
   [
    "editorkit/windows/moves.py",
-   24380
+   24401
   ],
   [
    "editorkit/windows/owndrags.py",
@@ -422,7 +422,7 @@
   ],
   [
    "editorkit_toolbox/explain.py",
-   43009
+   43346
   ],
   [
    "editorkit_toolbox/explain_subject.py",
@@ -442,7 +442,7 @@
   ],
   [
    "editorkit_toolbox/find.py",
-   12741
+   12923
   ],
   [
    "editorkit_toolbox/gallery.py",
@@ -450,7 +450,7 @@
   ],
   [
    "editorkit_toolbox/hub.py",
-   43600
+   43780
   ],
   [
    "editorkit_toolbox/hub_layout.py",

@@ -9,10 +9,11 @@ is small, so what matters comes first and the rest is a scroll away:
     docs        the docs for it, rendered in full, links live (they open
                 here); 📖 Read on opens the whole docs page here, at this
                 entry, to scroll for context. Your own names: Your code.
+    find        🔎 Find in all files (the hub's Find), under the name and
+                inputs, so long docs never hide it
     examples    the docs' code examples for it, each with ⤵ Insert
-    more        one quiet row: Used here ▸ (the hits, opened in place),
-                🔎 Find in all files (the hub's Find), and Members ▸ and
-                Defined in ▸ when there are no docs
+    more        one quiet row: Used here ▸ (the hits, opened in place), and
+                Members ▸ and Defined in ▸ when there are no docs
     outline     selected lines: their classes, methods and functions
     names       nothing under the cursor: the line's names, then the names in
                 the code on screen, as chips (tap one to explain it); only
@@ -355,6 +356,16 @@ def inputs(tool, subject, page):
     page.chips(chips)
 
 
+def find_row(tool, subject, page):
+    """🔎 Find in all files (the hub's Find), high up under the name, so a
+    long docs page never hides it."""
+    if not subject.dotted or subject.kind == 'page':
+        return
+    # The whole dotted name, as written: sys.copyright, not every copyright.
+    page.buttons([card_kit.Action('🔎 Find %s in all files' % subject.dotted,
+                                  ('find', subject.dotted))])
+
+
 def docs_facet(tool, subject, page):
     """The docs, in full, links live, in the docs' own look; else your own
     code; else the docstring or the value."""
@@ -426,8 +437,9 @@ def examples(tool, subject, page):
 
 
 def more(tool, subject, page):
-    """One quiet row: where it is used here (opened in place), Find in all
-    files (the hub's Find), and with no docs its members and definition."""
+    """One quiet row: where it is used here (opened in place), and with no
+    docs its members and definition. Find in all files sits higher up
+    (find_row)."""
     if not subject.dotted or subject.kind == 'page':
         return
     name = last_part(subject)
@@ -451,16 +463,14 @@ def more(tool, subject, page):
     buttons = []
     if used:
         buttons.append(toggle('Used here', 'used', len(used)))
-    # The whole dotted name, as written: sys.copyright, not every copyright.
-    buttons.append(card_kit.Action('🔎 Find %s in all files' % subject.dotted,
-                                   ('find', subject.dotted)))
     if show_members:
         buttons.append(toggle('Members', 'members',
                               len([member for member in dir(thing) if not member.startswith('_')])))
     if elsewhere:
         buttons.append(toggle('Defined in', 'defined', len(elsewhere)))
-    page.note('MORE')
-    page.buttons(buttons)
+    if buttons:
+        page.note('MORE')
+        page.buttons(buttons)
     if used and 'used' in tool.opened:
         page.grid([card_kit.Card('line %d' % line, item=('jump', index),
                                  body=card_kit.code(hit_text.strip(), lines=1),
@@ -553,7 +563,7 @@ def name_chips(page, label, found, defined=()):
                     for name in found])
 
 
-FACETS = [header, inputs, docs_facet, examples, more, outline, names]
+FACETS = [header, inputs, find_row, docs_facet, examples, more, outline, names]
 
 
 # --- The tool -----------------------------------------------------------------
