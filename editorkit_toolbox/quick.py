@@ -62,7 +62,7 @@ TOOLS = [
      'about': 'Copies a link that opens this script without running it.'},
     {'section': 'SCRIPT', 'icon': '🗒️', 'title': 'Scratch Pad', 'caption': 'new tab',
      'do': 'open_scratch_pad',
-     'about': 'Creates a blank scratch_pad.py beside the open script and opens it.'},
+     'about': 'Makes a new pad in scratch/pads (the 🧪 Scratch tool keeps them) and opens it.'},
     {'section': 'SCRIPT', 'icon': '✏️', 'title': 'Rename', 'caption': 'tab follows',
      'do': 'rename',
      'about': "Renames the open script with Pythonista's own rename, so its tab "

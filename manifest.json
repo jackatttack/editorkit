@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.5.8",
- "staged": "2026-11-19 12:41",
+ "version": "0.5.9",
+ "staged": "2026-11-22 12:49",
  "files": [
   [
    "LICENSE",
@@ -302,7 +302,7 @@
   ],
   [
    "editorkit/web/tiles/code.py",
-   16728
+   18455
   ],
   [
    "editorkit/web/tiles/feed.py",
@@ -422,7 +422,7 @@
   ],
   [
    "editorkit_toolbox/explain.py",
-   43346
+   45094
   ],
   [
    "editorkit_toolbox/explain_subject.py",
@@ -434,11 +434,11 @@
   ],
   [
    "editorkit_toolbox/filecards.py",
-   2148
+   2149
   ],
   [
    "editorkit_toolbox/files_page.py",
-   10741
+   10820
   ],
   [
    "editorkit_toolbox/find.py",
@@ -450,7 +450,7 @@
   ],
   [
    "editorkit_toolbox/hub.py",
-   43780
+   44565
   ],
   [
    "editorkit_toolbox/hub_layout.py",
@@ -506,7 +506,7 @@
   ],
   [
    "editorkit_toolbox/quick.py",
-   15132
+   15145
   ],
   [
    "editorkit_toolbox/runner.py",
@@ -521,8 +521,16 @@
    16064
   ],
   [
+   "editorkit_toolbox/scratch_pads.py",
+   6470
+  ],
+  [
+   "editorkit_toolbox/scratch_tool.py",
+   8412
+  ],
+  [
    "editorkit_toolbox/scriptops.py",
-   11622
+   11401
   ],
   [
    "editorkit_toolbox/scriptview.py",
@@ -542,7 +550,7 @@
   ],
   [
    "editorkit_toolbox/snippets.py",
-   13091
+   12825
   ],
   [
    "editorkit_toolbox/snippets_core.py",
@@ -550,7 +558,7 @@
   ],
   [
    "editorkit_toolbox/tools.py",
-   13642
+   14300
   ],
   [
    "editorkit_toolbox/traceback_card.py",

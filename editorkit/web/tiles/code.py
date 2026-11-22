@@ -219,10 +219,29 @@ class Code(Tile):
         # Each layout moves this on, so it fires once the resize has settled.
         self.settle_due = time.time() + SETTLE_DELAY
 
+    # Live state across a rebuild. A page keeps anything the replayed HTML
+    # cannot (a board's working, a game in progress) by registering
+    #     window.ekKeepers[name] = {keep: function () {...}, restore: function (value) {...}}
+    # keep() returns something JSON can carry (null: nothing to keep);
+    # restore(value) gets it back on the fresh page once its sections are
+    # replayed. Names should say what and where, so a different page never
+    # picks up another's state. Pages without keepers are untouched.
+    KEEP_SCRIPT = ('(function () { var k = window.ekKeepers || {}, out = {}, n = 0;'
+                   ' for (var name in k) { try { var v = k[name].keep();'
+                   ' if (v !== null && v !== undefined) { out[name] = v; n++; } } catch (e) {} }'
+                   ' return n ? JSON.stringify(out) : ""; })()')
+    # Keepers register as the replayed page wakes, so look a few times.
+    RESTORE_SCRIPT = ('(function (kept) { var tries = 0; (function hand() {'
+                      ' var k = window.ekKeepers || {}, left = 0;'
+                      ' for (var name in kept) { if (k[name]) { try { k[name].restore(kept[name]); }'
+                      ' catch (e) {} delete kept[name]; } else { left++; } }'
+                      ' if (left && tries++ < 20) { setTimeout(hand, 50); } })(); })(%s)')
+
     def rebuild(self):
         """Replace the web view with a fresh one at this size, showing the
-        same sections, ring and scroll. The old one stays on top until the
-        new one has loaded (webview_did_finish_load removes it)."""
+        same sections, ring, scroll and kept state (KEEP_SCRIPT). The old
+        one stays on top until the new one has loaded
+        (webview_did_finish_load removes it)."""
         if self.old_web is not None:
             return                   # one replacement at a time
         self.rebuild_count += 1
@@ -231,9 +250,17 @@ class Code(Tile):
             scroll_y = float(self.web.eval_js('window.scrollY') or 0)
         except Exception:
             scroll_y = 0.0
+        try:
+            kept = self.web.eval_js(self.KEEP_SCRIPT) or ''
+        except Exception:
+            kept = ''
         replay = ['setResults(%s)' % json.dumps(''.join(self.shown_html))]
         if self.current_go is not None:
             replay.append('setCurrentGo(%s)' % json.dumps(self.current_go))
+        if kept:
+            # JSON is a JS literal, apart from two line breaks JS cannot hold raw.
+            kept = kept.replace('\u2028', '\\u2028').replace('\u2029', '\\u2029')
+            replay.append(self.RESTORE_SCRIPT % kept)
         replay.append('window.scrollTo(0, %d)' % scroll_y)
         self.old_web = self.web
         self.ready = False

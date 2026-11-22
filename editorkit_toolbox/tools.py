@@ -110,6 +110,11 @@ def open_tidy():
     return ek.tidy()
 
 
+def open_scratch():
+    from . import scratch_tool
+    return scratch_tool.open_scratch()
+
+
 BUILT_IN = [
     {'name': 'Learn', 'emoji': '🎓', 'what': 'lessons and examples',
      'home': 'over the code', 'open': open_learn,
@@ -159,6 +164,13 @@ BUILT_IN = [
      'about': 'Run the open script, or only the selected lines, and watch its '
               'output stream in as cards. Tap a traceback line to open the file '
               'there. ■ stops a run, ⌫ clears.'},
+    {'name': 'Scratch', 'emoji': '🧪', 'what': 'throwaway Python pads',
+     'home': 'over the code', 'open': open_scratch,
+     'about': 'Throwaway Python, kept out of your projects: every pad lives in '
+              'scratch/pads. ＋ New pad makes one and opens it; on a pad, ▶ runs it in '
+              'the Console, 📌 keeps it, 🗑 twice deletes it. 🧹 Clean deletes every pad '
+              'not kept, and old scratch_pad.py files anywhere in Documents, after a '
+              'second tap. Auto-clean deletes old pads each time Scratch opens.'},
     {'name': 'Quick', 'emoji': '⚡', 'what': 'one-tap script actions',
      'home': 'over the code', 'open': open_quick,
      'about': 'One-tap actions on the open script: copy, run, duplicate, '

@@ -263,11 +263,11 @@ def folder_page(folder, root, entries, facts_for, selected=None, target=None,
     return page
 
 
-def folder_picker_page(folder, root, entries, facts_for, now=None):
+def folder_picker_page(folder, root, entries, facts_for, now=None, extra=()):
     """Choosing a folder (Search's scope): the path as chips (tap to go
     there), 'Search in' and Cancel, then the folders here as tiles (tap to
     go in). Files are left out. Items: ('folder', path), ('pick', folder),
-    ('cancel', None)."""
+    ('cancel', None). extra: actions put before 'Search in' (the hub's ⌂)."""
     now = time.time() if now is None else now
     page = cards.Page()
     trail = crumbs(folder, root)
@@ -275,7 +275,7 @@ def folder_picker_page(folder, root, entries, facts_for, now=None):
                            on=index == len(trail) - 1)
                 for index, (label, path) in enumerate(trail)])
     name = os.path.basename(folder) or folder
-    page.buttons([cards.Action('🔎 Search in %s' % name, ('pick', folder), look='go'),
+    page.buttons(list(extra) + [cards.Action('🔎 Search in %s' % name, ('pick', folder), look='go'),
                   cards.Action('Cancel', ('cancel', None))])
     folders = [entry for entry in entries if entry.is_folder][:MAX_TILES]
     if folders:

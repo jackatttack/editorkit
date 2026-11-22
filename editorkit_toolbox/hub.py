@@ -311,7 +311,9 @@ FIND_CODE_FILES = 12         # code hits from this many files until Show all
 FIND_NAME_FILES = 6          # file-name cards until Show all
 FIND_RECENT = 6              # recent script cards
 MORE_LABEL = 'Show all ↓'    # the row after a capped section: lifts its cap
-SCOPE_HERE = '⌂'             # chip: search the open file's folder
+SCOPE_HERE = "⌂ This script's folder"   # first choice on the scope sheet
+SCOPE_CHIP_WIDTH = 120       # the 📁 chip at the end of Find's field
+SCOPE_NAME_MAX = 10          # letters of the folder's name on the chip
 SCOPE_MEMORY = {}            # the folder Find last searched, while Toolbox is installed
 
 FIND_CSS = search.RESULTS_CSS + """
@@ -353,7 +355,11 @@ def grid_body(section, fold_name, grid, min_width):
 
 
 def scope_label(folder):
-    return 'in %s ▾' % (os.path.basename(folder) or folder)
+    """The scope chip's words: the folder's name, cut to SCOPE_NAME_MAX."""
+    name = os.path.basename(folder) or folder
+    if len(name) > SCOPE_NAME_MAX:
+        name = name[:SCOPE_NAME_MAX - 1] + '…'
+    return '📁 %s ▾' % name
 
 
 class Hub:
@@ -384,18 +390,17 @@ class Hub:
         # in the results zooms the way the docs' code does.
         self.results = web_tiles.Cards(self.window, on_pick=self.picked, extra_css=FIND_CSS,
                                        zoom_key='find')
-        # Where Find looks: a folder chip (a sheet of folder tiles) and ⌂.
+        # Where Find looks: a 📁 chip at the end of the field, opening a sheet
+        # of folder tiles (the open script's folder is its first choice).
         self.scope = SCOPE_MEMORY.get('folder', DOCUMENTS)
         if not os.path.isdir(self.scope):
             self.scope = DOCUMENTS
-        self.scope_chips = Chips(self.window)
-        self.scope_chips.add('scope', scope_label(self.scope), lambda name: self.choose_scope())
-        self.scope_chips.add('here', SCOPE_HERE, lambda name: self.scope_to_file())
         self.find = layouts.query_list(
             self.window, FIND_PLACEHOLDER, on_change=self.typed, page=FIND_PAGE,
-            body=self.results, rows_above=[self.tray_bar], rows=[self.scope_chips],
-            compact_in_dock=False)
+            body=self.results, rows_above=[self.tray_bar], compact_in_dock=False)
         self.find.top.set_visible(self.tray_bar, bool(self.window.tray()))
+        self.scope_button = self.find.field.add_button(
+            scope_label(self.scope), lambda field: self.choose_scope(), width=SCOPE_CHIP_WIDTH)
         self.opener = ek.Opener(self.window)
         self.folded = set()              # Find sections folded by a tap on their header
         self.term = ''
@@ -719,7 +724,7 @@ class Hub:
 
     def set_scope(self, folder):
         self.scope = SCOPE_MEMORY['folder'] = folder
-        self.scope_chips.set_label('scope', scope_label(folder))
+        self.scope_button.title = scope_label(folder)
         self.start_find(self.term, keep_expanded=True)
 
     def scope_to_file(self):
@@ -730,6 +735,9 @@ class Hub:
         """The scope chip: a sheet of folder tiles like Files' (tap a tile to
         go in, a chip to go up), with 'Search in' to pick and Cancel."""
         self.find.field.unfocus()
+        if self.scope_sheet is not None and self.scope_sheet.on_screen and not self.scope_sheet.hidden:
+            self.window.close_sheet()        # the chip again folds the sheet away
+            return
         if self.scope_sheet is None:
             self.scope_sheet = web_tiles.Cards(self.window, on_pick=self.scope_picked,
                                                zoom=search.SCOPE_ZOOM, zoom_key='find-scope',
@@ -740,14 +748,20 @@ class Hub:
         self.window.show_sheet(self.scope_sheet)
 
     def browse_scope(self, folder):
+        """The folder sheet at folder, with ⌂ first while a script is open."""
         entries = browse.list_folder(folder, folders_only=True)
+        extra = [card_kit.Action(SCOPE_HERE, ('here', None))] if ek.current_file() else []
         self.scope_sheet.show(files_page.folder_picker_page(
-            folder, DOCUMENTS, entries, files_page.facts_for_entry, now=time.time()))
+            folder, DOCUMENTS, entries, files_page.facts_for_entry, now=time.time(),
+            extra=extra))
 
     def scope_picked(self, item):
         kind, value = item
         if kind == 'folder':
             self.browse_scope(value)
+        elif kind == 'here':
+            self.window.close_sheet()
+            self.scope_to_file()
         elif kind == 'pick':
             self.window.close_sheet()
             self.set_scope(value)

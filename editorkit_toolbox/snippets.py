@@ -45,8 +45,8 @@ FIELD_CHIPS = ('${cursor}', '${date}', '${time}', '${clipboard}')
 NEW_ICON = '➕'
 START_ZOOM = 0.8                 # the first size; a pinch is remembered after that
 SEEN_STORE = 'snippet_seeds'     # ek.store: seeds already offered, so a deleted one stays deleted
-SCRATCH_ICON = '📄'              # header: open the scratch pad beside the open script
-SCRATCH_NAME = 'scratch_pad.py'
+SCRATCH_ICON = '📄'              # header: the newest pad in scratch/pads, or a new one
+
 SCRATCH_TEXT = '# Scratch pad: try snippets here. Snippets never overwrites it.\n'
 SHOWING_PLACES = ('dock', 'panel', 'console')   # places worth going back to
 FOLDED_PLACES = ('tray', 'pin', 'hidden')       # places it comes back from
@@ -171,19 +171,15 @@ class SnippetsTool:
         self.refresh()
 
     def open_scratch_pad(self):
-        """📄: scratch_pad.py beside the open script (in Documents when none is
-        open), made the first time and never overwritten, opened in the editor.
-        Snippets stays up, ready to type into it."""
-        current = ek.current_file()
-        folder = os.path.dirname(current) if current else os.path.expanduser('~/Documents')
-        path = os.path.join(folder, SCRATCH_NAME)
-        if not os.path.exists(path):
-            try:
-                with open(path, 'x', encoding='utf-8') as handle:
-                    handle.write(SCRATCH_TEXT)
-            except OSError as problem:
-                print('Snippets could not make a scratch pad: %s' % problem)
-                return
+        """📄: the newest pad in scratch/pads (a new one when there are none),
+        opened in the editor. Snippets stays up, ready to type into it."""
+        from . import scratch_pads
+        existing = scratch_pads.pads()
+        try:
+            path = existing[0].path if existing else scratch_pads.new_pad(text=SCRATCH_TEXT)
+        except OSError as problem:
+            print('Snippets could not make a scratch pad: %s' % problem)
+            return
         ek.open_file(path)
 
     def load(self):

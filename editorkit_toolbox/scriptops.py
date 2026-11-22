@@ -23,7 +23,7 @@ from objc_util import NSRange, ObjCClass, on_main_thread, sel
 
 DOCUMENTS = os.path.expanduser('~/Documents')
 EDITOR_REVEAL_SECONDS = 0.25
-SCRATCH_STEM = 'scratch_pad'
+
 # Suspected (2026-11-02): setting a truly empty buffer through the text view
 # crashes Pythonista, so a cleared script keeps one newline.
 EMPTY_SCRIPT = '\n'
@@ -193,15 +193,11 @@ def open_script(path, reveal=True):
 
 
 def open_scratch_pad():
-    """A blank scratch_pad.py beside the open script (scratch_pad_2.py and
-    so on), opened in a new tab; in Documents with no script open. Returns
-    the path, or ''."""
-    path = active_path()
-    folder = os.path.dirname(path) if path else DOCUMENTS
-    target = next_free_path(folder, SCRATCH_STEM, '.py')
+    """A new pad in scratch/pads (the Scratch tool's folder, never beside
+    your code), opened in a new tab. Returns the path, or ''."""
+    from . import scratch_pads
     try:
-        with open(target, 'w', encoding='utf-8') as handle:
-            handle.write('')
+        target = scratch_pads.new_pad()
     except Exception as error:
         hud('Scratch pad failed: %s' % error, 'error', 1.2)
         return ''

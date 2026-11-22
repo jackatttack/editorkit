@@ -66,6 +66,7 @@ EXAMPLES_SHOWN = 3
 EXAMPLE_LINES = 14
 MEMBERS_SHOWN = 40
 USAGES_SHOWN = 12
+USED_CONTEXT_LINES = 2           # Used here: lines shown above and below each use
 SOURCE_LINES = 24            # lines of a definition shown on its card
 SOURCE_LIMIT = 200           # lines read for one definition
 DOC_CHARACTERS = 1500        # a docstring is cut here
@@ -436,6 +437,43 @@ def examples(tool, subject, page):
                       for number, block in enumerate(found, 1)])
 
 
+def used_rows_html(page, text, name, used):
+    """Where it is used here, as Find shows hits: each use with
+    USED_CONTEXT_LINES of code around it, the name marked, nearby uses in
+    one block (a dashed rule between blocks), coloured as Python from the
+    whole file. Built here rather than with codeview.file_section so a tap
+    goes through page.go, like every other tap on Explain's page: a use's
+    row jumps to the use, a context row to the start of its line."""
+    import re
+    from editorkit.web import codeview
+    lines = text.splitlines()
+    line_starts, offset = [], 0
+    for line in text.splitlines(True):
+        line_starts.append(offset)
+        offset += len(line)
+    word = re.compile(r'\b%s\b' % re.escape(name))
+    marks_by_line, jump_for_line = {}, {}
+    for number, index, _ in used:
+        if 1 <= number <= len(lines):
+            found = [(match.start(), match.end()) for match in word.finditer(lines[number - 1])]
+            marks_by_line[number] = found or [(0, 0)]
+            jump_for_line[number] = index
+    classes = codeview.syntax_classes(text)
+    out = ['<div class="file">']
+    for first, last in codeview.line_blocks(marks_by_line, len(lines), USED_CONTEXT_LINES):
+        out.append('<div class="block">')
+        for number in range(first, last + 1):
+            is_use = number in marks_by_line
+            jump = jump_for_line[number] if is_use else line_starts[min(number, len(line_starts)) - 1]
+            code = codeview.line_html(lines[number - 1], classes.get(number, []),
+                                      marks_by_line.get(number, []))
+            out.append('<div class="%s"%s><span class="ln">%d</span><span class="code">%s</span></div>'
+                       % ('row hit' if is_use else 'row ctx', page.go(('jump', jump)), number, code))
+        out.append('</div>')
+    out.append('</div>')
+    return ''.join(out)
+
+
 def more(tool, subject, page):
     """One quiet row: where it is used here (opened in place), and with no
     docs its members and definition. Find in all files sits higher up
@@ -472,10 +510,7 @@ def more(tool, subject, page):
         page.note('MORE')
         page.buttons(buttons)
     if used and 'used' in tool.opened:
-        page.grid([card_kit.Card('line %d' % line, item=('jump', index),
-                                 body=card_kit.code(hit_text.strip(), lines=1),
-                                 colour=KIND_COLOURS['file'])
-                   for line, index, hit_text in used], min_width=CARD_WIDTH)
+        page.parts.append(used_rows_html(page, text, name, used))
     if show_members and 'members' in tool.opened:
         cards = []
         for member in [member for member in dir(thing) if not member.startswith('_')][:MEMBERS_SHOWN]:
