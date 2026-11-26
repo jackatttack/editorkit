@@ -40,6 +40,7 @@ FILL_ABOVE_PREVIEW = True    # the tiles fill the space above the preview
 OPEN_ICON = '↗'
 SEARCH_ICON = '🔎'           # opens Search, which is 🔎
 NEW_SCRIPT_ICON = '📄'       # header: a new script in the folder shown
+HIDDEN_ICON = '👁'          # show or hide dot folders and files
 NEW_SCRIPT_NAME = 'untitled.py'
 CONFIRM_SECONDS = 3.0        # how long an armed delete waits for its second tap
 START_ZOOM = 0.8             # the first size; a pinch is remembered after that
@@ -76,6 +77,7 @@ class FilesTool:
         self.moving = None           # path waiting for Move's folder pick
         self.armed_until = 0.0       # an armed delete lasts until then
         self.facts_cache = {}        # path -> (modified time, Facts)
+        self.show_hidden = False     # 👁: dot folders (.forge, .forge_secrets) stay hidden until asked
         self.opener = ek.Opener(window)
 
         # Paired with the preview's keys, so scrolling must not hide the keyboard.
@@ -91,6 +93,7 @@ class FilesTool:
         window.add_button(OPEN_ICON, lambda _window: self.open_previewed(), name='open')
         window.add_button(SEARCH_ICON, lambda _window: self.open_search(), name='search')
         window.add_button(NEW_SCRIPT_ICON, lambda _window: self.new_script(), name='new-script')
+        window.add_button(HIDDEN_ICON, lambda _window: self.toggle_hidden(), name='hidden')
         window.on('open', lambda _window: self.window_opened())
 
     def begin(self):
@@ -124,9 +127,18 @@ class FilesTool:
         if self.folder is None:
             return
         self.board.show(files_page.folder_page(
-            self.folder, DOCUMENTS, browse.list_folder(self.folder), self.facts,
+            self.folder, DOCUMENTS, browse.list_folder(self.folder, show_hidden=self.show_hidden),
+            self.facts,
             selected=self.previewing, target=self.target(), armed=self.armed(),
             now=time.time(), message=self.message))
+
+    def toggle_hidden(self):
+        """👁: show or hide dot folders and files (.forge, .forge_secrets).
+        Starts off each time Files is built, so secrets never show by accident."""
+        self.show_hidden = not self.show_hidden
+        self.window.set_button('hidden', on=self.show_hidden)
+        self.message = 'Showing hidden files' if self.show_hidden else None
+        self.refresh()
 
     def facts(self, entry):
         """A tile's Facts, reread only when the file's modified time changes."""

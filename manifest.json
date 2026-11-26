@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.5.9",
- "staged": "2026-11-22 12:49",
+ "version": "0.6.0",
+ "staged": "2026-11-26 09:44",
  "files": [
   [
    "LICENSE",
@@ -266,7 +266,7 @@
   ],
   [
    "editorkit/web/codeview.py",
-   29200
+   29930
   ],
   [
    "editorkit/web/prose.py",
@@ -315,6 +315,10 @@
   [
    "editorkit/web/tiles/tape.py",
    2508
+  ],
+  [
+   "editorkit/web/touch.py",
+   9165
   ],
   [
    "editorkit/windows/__init__.py",
@@ -430,7 +434,7 @@
   ],
   [
    "editorkit_toolbox/filebrowser.py",
-   12969
+   13676
   ],
   [
    "editorkit_toolbox/filecards.py",
@@ -599,6 +603,10 @@
   [
    "examples/editor_watch_changes.py",
    540
+  ],
+  [
+   "examples/plugin_hello.py",
+   2805
   ],
   [
    "examples/theme_night.py",

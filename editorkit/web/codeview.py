@@ -636,6 +636,21 @@ def wash(colour, alpha):
     return 'rgba(%d, %d, %d, %.2f)' % (red, green, blue, alpha)
 
 
+def load_touch():
+    """editorkit.web.touch, whose SCRIPT every page shell carries. Loaded
+    from beside this file when codeview runs on its own (smoke_codeview
+    loads it by path, outside the package)."""
+    try:
+        from . import touch
+        return touch
+    except ImportError:
+        import importlib.util
+        import os
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'touch.py')
+        spec = importlib.util.spec_from_file_location('editorkit_web_touch', path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 def page_html(palette, font_size=FONT_SIZE, extra_css=''):
     """The page shell, loaded once. palette is a window's palette (or any
     object with panel, background, text, dim and accent)."""
@@ -658,12 +673,13 @@ def page_html(palette, font_size=FONT_SIZE, extra_css=''):
     syntax = dict(SYNTAX_COLOURS)
     syntax.update(getattr(palette, 'syntax', None) or {})
     syntax_css = '\n'.join('.%s { color: %s; }' % item for item in syntax.items())
+    touch = load_touch()   # every page gets window.ekTouch (touch.py says why)
     script = ('var SCHEME = %s;\nvar FAST_TAPS = %s;\nvar TAP_SLOP = %d;\n'
               'var TAP_MAX_MS = %d;\nvar TAP_DRIFT = %d;\nvar WRAP_LINES = %s;\n'
               'var HANG = %d;\n%s' % (
                   json.dumps(LINK_SCHEME), json.dumps(bool(FAST_TAPS)), TAP_SLOP,
                   int(TAP_MAX_SECONDS * 1000), TAP_DRIFT, json.dumps(bool(WRAP_LINES)),
-                  HANG, PAGE_SCRIPT))
+                  HANG, PAGE_SCRIPT + '\n;\n' + touch.SCRIPT))
     return ('<!doctype html><html><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             '<style>%s\n%s\n%s</style></head><body><div id="results"></div>'
