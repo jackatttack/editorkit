@@ -21,7 +21,7 @@ import traceback
 
 import ui
 
-from .. import codeview
+from .. import bridge, codeview
 from ... import trace
 from ...native.base import Tile
 
@@ -99,7 +99,8 @@ def keep_from_focus(web):
 class Code(Tile):
 
     def __init__(self, window, on_go=None, on_scroll=None, extra_css='',
-                 dismiss_keyboard=True, on_pick=None, fresh_on_grow=False):
+                 dismiss_keyboard=True, on_pick=None, fresh_on_grow=False, extra_js='',
+                 on_message=None):
         Tile.__init__(self, window)
         self.on_go = on_go
         self.on_pick = on_pick
@@ -110,6 +111,10 @@ class Code(Tile):
         # would put the keys away.
         self.dismiss_keyboard = dismiss_keyboard
         self.extra_css = extra_css
+        self.extra_js = extra_js         # the page's own script, after the shell (bridge.py)
+        self.message_handlers = {}       # name -> handler(data), from ekSend (on_message)
+        self.on_any_message = on_message   # handler(name, data) for names with no handler
+        self.patches = {}                # selector -> (html, outer) since set_html, for a rebuild
         self.fresh_on_grow = fresh_on_grow
         self.wk = None               # the WKWebView, for scripts that never wait
         self.ready = False
@@ -140,7 +145,7 @@ class Code(Tile):
         web.delegate = self
         web.frame = (0, 0, self.width, self.height)
         self.add_subview(web)
-        web.load_html(codeview.page_html(self.palette, extra_css=self.extra_css))
+        web.load_html(codeview.page_html(self.palette, extra_css=self.extra_css, extra_js=self.extra_js))
         return web
 
     # --- Showing ----------------------------------------------------------
@@ -151,6 +156,7 @@ class Code(Tile):
         self.items = {}              # plain HTML: nothing left to pick
         self.shown_html = [html]
         self.current_go = None
+        self.patches = {}
         self.run('setResults(%s, %s)' % (json.dumps(html), 'true' if keep_scroll else 'false'))
 
     def add_html(self, html):
@@ -182,6 +188,23 @@ class Code(Tile):
                 self.run('setCurrentGo(%s)' % json.dumps(go))
                 return True
         return False
+
+    # --- Talking with the page (bridge.py) ---------------------------------
+
+    def patch(self, selector, html, outer=False):
+        """Replace the inside of every element matching selector (outer=True:
+        the elements themselves), without redrawing the page or moving its
+        scroll. Kept until the next set_html, so a rebuild replays it."""
+        self.patches[selector] = (html, outer)
+        self.run(bridge.patch_call(selector, html, outer))
+
+    def on_message(self, name, handler):
+        """handler(data) runs on the clock when the page calls ekSend(name,
+        data). handler=None stops listening for name."""
+        if handler is None:
+            self.message_handlers.pop(name, None)
+        else:
+            self.message_handlers[name] = handler
 
     def say(self, words):
         self.set_html(codeview.message_html(words) if words else '')
@@ -255,6 +278,8 @@ class Code(Tile):
         except Exception:
             kept = ''
         replay = ['setResults(%s)' % json.dumps(''.join(self.shown_html))]
+        replay += [bridge.patch_call(selector, html, outer)
+                   for selector, (html, outer) in self.patches.items()]
         if self.current_go is not None:
             replay.append('setCurrentGo(%s)' % json.dumps(self.current_go))
         if kept:
@@ -345,6 +370,12 @@ class Code(Tile):
                     self.on_go(payload)
                 elif kind == 'scroll' and self.on_scroll:
                     self.on_scroll()
+                elif kind == 'msg':
+                    name, data = payload
+                    if name in self.message_handlers:
+                        self.message_handlers[name](data)
+                    elif self.on_any_message:
+                        self.on_any_message(name, data)
             except Exception:
                 self.last_error = traceback.format_exc().strip().splitlines()[-1]
                 traceback.print_exc()
@@ -385,6 +416,12 @@ class Code(Tile):
                 clip.set_text(unquote(rest[len(codeview.COPY_PATH):]))
             except Exception as error:
                 print('editorkit: copy failed: %r' % (error,))
+            return False
+        message = bridge.parse_message(rest)
+        if message is not None:      # ekSend: not a tap, so focus is left alone
+            self.link_count += 1
+            self.last_link = (time.time(), rest[:80])
+            self.events.append(('msg', message))
             return False
         # A tap in the keyboard's place: take focus back from the web view now
         # and on the clock for a moment after (see keep_dock_focus).

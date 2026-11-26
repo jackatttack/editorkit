@@ -184,6 +184,23 @@ class Page:
         return '<div class="%s"%s>%s</div>' % (classes, self.go(action.item),
                                                escape(action.label))
 
+    def choices(self, options, chosen=None, colour=None):
+        """A one-of-many chip row (a segmented control): options are
+        (label, item) pairs, and the chip whose item is chosen is on. Taps
+        hand the item back like any chip."""
+        self.chips([Chip(label, item=item, colour=colour, on=item == chosen) for label, item in options])
+
+    def sheet(self, title, body, open=False):
+        """A panel that folds open and shut in the page with no trip to
+        Python: title on a tappable bar, body HTML under it. The browser's
+        own <details>, so no script. A redraw shows it shut unless open."""
+        self.parts.append(
+            '<details class="ek-sheet"%s style="background:var(--wash);border-radius:12px;'
+            'margin:8px 0;padding:0 12px"><summary style="cursor:pointer;padding:10px 0;'
+            'font:600 15px -apple-system,sans-serif">%s</summary>'
+            '<div style="padding:0 0 12px">%s</div></details>'
+            % (' open' if open else '', escape(title), body))
+
     def section(self):
         """(html, items) for tiles.Code.set_section (tiles.Cards.show calls it)."""
         return ''.join(self.parts), self.ids.items

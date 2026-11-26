@@ -1,8 +1,8 @@
 {
  "name": "editorkit",
  "app": "Toolbox for Pythonista",
- "version": "0.6.0",
- "staged": "2026-11-26 09:44",
+ "version": "0.7.0",
+ "staged": "2026-11-26 12:03",
  "files": [
   [
    "LICENSE",
@@ -18,7 +18,7 @@
   ],
   [
    "editorkit/__init__.py",
-   2515
+   3045
   ],
   [
    "editorkit/_app.py",
@@ -71,6 +71,10 @@
   [
    "editorkit/codesense/units.py",
    1191
+  ],
+  [
+   "editorkit/data.py",
+   7531
   ],
   [
    "editorkit/events.py",
@@ -209,6 +213,10 @@
    7803
   ],
   [
+   "editorkit/requires.py",
+   1385
+  ],
+  [
    "editorkit/script.py",
    8033
   ],
@@ -258,15 +266,27 @@
   ],
   [
    "editorkit/web/__init__.py",
-   1166
+   1487
+  ],
+  [
+   "editorkit/web/assets.py",
+   2192
+  ],
+  [
+   "editorkit/web/bridge.py",
+   4564
   ],
   [
    "editorkit/web/cards.py",
-   11704
+   12729
   ],
   [
    "editorkit/web/codeview.py",
-   29930
+   30369
+  ],
+  [
+   "editorkit/web/preview.py",
+   3827
   ],
   [
    "editorkit/web/prose.py",
@@ -302,7 +322,7 @@
   ],
   [
    "editorkit/web/tiles/code.py",
-   18455
+   20425
   ],
   [
    "editorkit/web/tiles/feed.py",
@@ -627,6 +647,10 @@
   [
    "examples/tool_word_pad.py",
    1909
+  ],
+  [
+   "examples/web_bridge.py",
+   2166
   ],
   [
    "examples/window_explainer.py",

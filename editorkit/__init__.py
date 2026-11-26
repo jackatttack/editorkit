@@ -14,6 +14,8 @@
     ek.open_tabs(); ek.selected_tab(); ek.select_tab(path); ek.open_file(path)
 
     ek.tidy()                                  # lay open windows out evenly (again: undo)
+    ek.data.find('datasets/pokemon.csv')       # shared files: this device first, then iCloud
+    ek.require('0.7.0', 'Maths')               # a plugin's check: "update Toolbox" if older
     ek.show_browser()
     ek.use_theme('PythonistaDark'); ek.install_theme('My Theme', colours, scopes)
 
@@ -22,7 +24,7 @@ Pythonista quits, and is safe to call from any thread. It works by reaching
 Pythonista's own (private) classes through objc_util, so a Pythonista update
 could change things. See README.md.
 """
-__version__ = '0.6.0'
+__version__ = '0.7.0'
 
 from .annotations import STYLES, annotate, clear_annotations, remove_annotation
 from .browser import browser_visible, hide_browser, show_browser, toggle_browser
@@ -45,7 +47,15 @@ from .opener import Opener
 from .pair import Pair
 from .native.textbox import edit_text
 from .tool import run_tool
-from . import clip, fileops, files, layouts
+from . import clip, data, fileops, files, layouts
+from .requires import EditorkitTooOld
+
+
+def require(minimum, needed_by='This tool'):
+    """Raise EditorkitTooOld, saying to update Toolbox, when this editorkit
+    is older than minimum. A plugin's first line: ek.require('0.7.0', 'Maths')."""
+    from .requires import require as check
+    return check(__version__, minimum, needed_by)
 from . import web
 
 # The core asks for HTML pages through a hook; the root wires the web

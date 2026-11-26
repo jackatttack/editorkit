@@ -636,24 +636,28 @@ def wash(colour, alpha):
     return 'rgba(%d, %d, %d, %.2f)' % (red, green, blue, alpha)
 
 
-def load_touch():
-    """editorkit.web.touch, whose SCRIPT every page shell carries. Loaded
-    from beside this file when codeview runs on its own (smoke_codeview
-    loads it by path, outside the package)."""
-    try:
-        from . import touch
-        return touch
-    except ImportError:
-        import importlib.util
-        import os
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'touch.py')
-        spec = importlib.util.spec_from_file_location('editorkit_web_touch', path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
-def page_html(palette, font_size=FONT_SIZE, extra_css=''):
+def load_sibling(name):
+    """editorkit.web.<name> (touch, bridge: scripts every page shell
+    carries). Loaded from beside this file when codeview runs on its own
+    (smoke_codeview loads it by path, outside the package)."""
+    import importlib
+    if __package__:
+        try:
+            return importlib.import_module('.' + name, __package__)
+        except ImportError:
+            pass
+    import importlib.util
+    import os
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), name + '.py')
+    spec = importlib.util.spec_from_file_location('editorkit_web_' + name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+def page_html(palette, font_size=FONT_SIZE, extra_css='', extra_js=''):
     """The page shell, loaded once. palette is a window's palette (or any
-    object with panel, background, text, dim and accent)."""
+    object with panel, background, text, dim and accent). extra_js is the
+    page's own script: it runs after the shell, ekTouch and the bridge
+    (ekSend, ekPatch), and before the ekready event (bridge.py)."""
     values = {
         'background': css_colour(palette.panel),
         'card': css_colour(palette.background),
@@ -673,13 +677,15 @@ def page_html(palette, font_size=FONT_SIZE, extra_css=''):
     syntax = dict(SYNTAX_COLOURS)
     syntax.update(getattr(palette, 'syntax', None) or {})
     syntax_css = '\n'.join('.%s { color: %s; }' % item for item in syntax.items())
-    touch = load_touch()   # every page gets window.ekTouch (touch.py says why)
+    touch = load_sibling('touch')     # window.ekTouch on every page (touch.py says why)
+    bridge = load_sibling('bridge')   # ekSend, ekPatch, ekready (bridge.py)
     script = ('var SCHEME = %s;\nvar FAST_TAPS = %s;\nvar TAP_SLOP = %d;\n'
               'var TAP_MAX_MS = %d;\nvar TAP_DRIFT = %d;\nvar WRAP_LINES = %s;\n'
               'var HANG = %d;\n%s' % (
                   json.dumps(LINK_SCHEME), json.dumps(bool(FAST_TAPS)), TAP_SLOP,
                   int(TAP_MAX_SECONDS * 1000), TAP_DRIFT, json.dumps(bool(WRAP_LINES)),
-                  HANG, PAGE_SCRIPT + '\n;\n' + touch.SCRIPT))
+                  HANG, '\n;\n'.join([PAGE_SCRIPT, touch.SCRIPT,
+                                      bridge.SCRIPT, bridge.safe_script(extra_js), bridge.READY_SCRIPT])))
     return ('<!doctype html><html><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
             '<style>%s\n%s\n%s</style></head><body><div id="results"></div>'
